@@ -1,18 +1,34 @@
 import java.io.*;
 import java.util.*;
 
-public class Main {
+public class MainBusca {
 
     private static final String CSV_FILE = "solarradiation.csv";
-    private static final int STEP = 5_000;
-    private static final int MAX_N = 500_000; // 7_000_000
-    private static final int TEST_SIZE = 1000;
+    private static final int TEST_SIZE = 2000;
 
     // seed fixa e usada de forma determinística por n (ver gerarVariantes)
     private static final long BASE_SEED = 42L;
 
     private static final String OUTPUT_DIR = "output";
     private static final String REPORT_FILE = OUTPUT_DIR + "/fail_report.txt";
+
+    enum Mode { FIXED_STEP, GROWTH_STEP }
+
+    // modo ativo do experimento — troque aqui para alternar
+    private static final Mode MODE = Mode.GROWTH_STEP;
+
+    // ---- parâmetros do modo antigo (FIXED_STEP): incremento aditivo fixo ----
+    private static final int FIXED_STEP = 10_000;
+    private static final int FIXED_MAX_N = 7_000_000;
+    private static final int FIXED_FINE_STEP = Math.max(FIXED_STEP / 10, 1000);
+
+    // ---- parâmetros do modo novo (GROWTH_STEP): incremento multiplicativo ----
+    // GROWTH_MAX_N reaproveita o mesmo teto do modo fixo (7.000.000) para
+    // explorar a mesma faixa; ajuste se quiser outro teto.
+    private static final int GROWTH_START_N = 10;
+    private static final int GROWTH_MAX_N = FIXED_MAX_N;
+    private static final double GROWTH_FACTOR = 1.15;
+    private static final double GROWTH_FINE_FACTOR = 1.02;
 
     static Map<String, BufferedWriter> writers = new HashMap<>();
 
@@ -30,6 +46,7 @@ public class Main {
 
         new File(OUTPUT_DIR).mkdirs();
 
+        log("Modo de experimento: " + MODE);
         log("Carregando dataset de '" + CSV_FILE + "'...");
         List<String> dataset = loadIds(CSV_FILE);
         log("Dataset carregado: " + dataset.size() + " registros.");
@@ -61,12 +78,14 @@ public class Main {
 
             // ===================== FASE COARSE =====================
 
-            int coarseLimit = Math.min(MAX_N, dataset.size());
-            log("Iniciando FASE COARSE (step=" + STEP + ", limite n=" + coarseLimit + ")");
+            List<Integer> coarseSeq = buildCoarseSequence(dataset.size());
+            log("Iniciando FASE COARSE — " + coarseSeq.size() + " pontos de n (de "
+                    + coarseSeq.get(0) + " a " + coarseSeq.get(coarseSeq.size() - 1) + ")");
 
-            for (int n = STEP; n <= coarseLimit; n += STEP) {
+            for (int i = 0; i < coarseSeq.size(); i++) {
 
-                double pct = (n * 100.0) / coarseLimit;
+                int n = coarseSeq.get(i);
+                double pct = ((i + 1) * 100.0) / coarseSeq.size();
                 log(String.format("[COARSE %5.1f%%] processando n=%d", pct, n));
 
                 Variants v = gerarVariantes(dataset, n, TEST_SIZE);
@@ -93,7 +112,7 @@ public class Main {
                     safeRunAVL("avl_reverse.csv", "avl_reverse", n, v.reverse, v.testSet, report);
             }
 
-            log(String.format("[COARSE 100.0%%] fase coarse concluída (n=%d)", coarseLimit));
+            log(String.format("[COARSE 100.0%%] fase coarse concluída."));
 
             // ===================== FASE FINE =====================
             //
@@ -104,25 +123,26 @@ public class Main {
             // funcionou até o n onde a falha ocorreu — e para assim que
             // estourar de novo (não continua além disso).
 
-            int fineStep = Math.max(STEP / 10, 1000);
-
             if (failPoint.isEmpty()) {
                 log("Nenhuma estrutura estourou na fase coarse — FASE FINE não será executada.");
             } else {
-                log("Iniciando FASE FINE (step=" + fineStep + ") para: " + failPoint.keySet());
+                log("Iniciando FASE FINE para: " + failPoint.keySet());
             }
 
             for (String structure : new ArrayList<>(failPoint.keySet())) {
 
                 int coarseFailN = failPoint.get(structure);
-                int from = lastSuccess.getOrDefault(structure, 0) + fineStep;
-                int totalSpan = Math.max(coarseFailN - from + fineStep, fineStep);
+                int fromN = lastSuccess.getOrDefault(structure, 0);
 
-                log("[FINE] " + structure + ": refinando janela n=" + from + ".." + coarseFailN);
+                List<Integer> fineSeq = buildFineSequence(fromN, coarseFailN);
 
-                for (int n = from; n <= coarseFailN; n += fineStep) {
+                log("[FINE] " + structure + ": refinando janela n=" + fromN + ".." + coarseFailN
+                        + " (" + fineSeq.size() + " pontos)");
 
-                    double pct = ((n - from + fineStep) * 100.0) / totalSpan;
+                for (int i = 0; i < fineSeq.size(); i++) {
+
+                    int n = fineSeq.get(i);
+                    double pct = ((i + 1) * 100.0) / fineSeq.size();
                     log(String.format("[FINE %s %5.1f%%] processando n=%d", structure, pct, n));
 
                     Variants v = gerarVariantes(dataset, n, TEST_SIZE);
@@ -151,6 +171,70 @@ public class Main {
 
         closeWriters();
         log("Benchmark concluído. Resultados em '" + OUTPUT_DIR + "'.");
+    }
+
+    // ===================== SEQUÊNCIAS DE n =====================
+
+    static List<Integer> buildCoarseSequence(int datasetSize) {
+        if (MODE == Mode.FIXED_STEP) {
+            int limit = Math.min(FIXED_MAX_N, datasetSize);
+            List<Integer> seq = new ArrayList<>();
+            for (int n = FIXED_STEP; n <= limit; n += FIXED_STEP) seq.add(n);
+            return seq;
+        } else {
+            int limit = Math.min(GROWTH_MAX_N, datasetSize);
+            return buildGrowthSequence(GROWTH_START_N, limit, GROWTH_FACTOR, true);
+        }
+    }
+
+    static List<Integer> buildFineSequence(int fromN, int toN) {
+        if (MODE == Mode.FIXED_STEP) {
+            List<Integer> seq = new ArrayList<>();
+            for (int n = fromN + FIXED_FINE_STEP; n <= toN; n += FIXED_FINE_STEP) seq.add(n);
+            return seq;
+        } else {
+            return buildGrowthSequence(Math.max(fromN, 1), toN, GROWTH_FINE_FACTOR, false);
+        }
+    }
+
+    /**
+     * Gera uma sequência de n crescendo multiplicativamente por 'factor',
+     * partindo de 'start' até 'max' (inclusive). Se includeStart=false, o
+     * valor 'start' em si é excluído do resultado (usado na fase fine,
+     * onde 'start' já foi testado com sucesso na fase anterior).
+     */
+    static List<Integer> buildGrowthSequence(double start, int max, double factor, boolean includeStart) {
+        List<Integer> seq = new ArrayList<>();
+
+        double cur = start;
+        int lastAdded;
+
+        int firstN = (int) Math.round(cur);
+        if (includeStart && firstN <= max) {
+            seq.add(firstN);
+            lastAdded = firstN;
+        } else {
+            lastAdded = firstN;
+        }
+
+        cur = Math.max(cur * factor, lastAdded + 1);
+
+        while (true) {
+            int n = (int) Math.round(cur);
+            if (n <= lastAdded) n = lastAdded + 1;
+            if (n > max) break;
+
+            seq.add(n);
+            lastAdded = n;
+            cur = Math.max(n * factor, n + 1);
+        }
+
+        if (seq.isEmpty()) {
+            // garante ao menos um ponto (ex.: janela fine muito estreita)
+            seq.add(Math.min(max, lastAdded + 1));
+        }
+
+        return seq;
     }
 
     // ===================== GERAÇÃO DETERMINÍSTICA DE DADOS =====================

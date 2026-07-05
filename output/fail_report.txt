@@ -1,6 +1,6 @@
 STRUCTURE,PHASE,N,ERROR
 
-BST,COARSE,25000,StackOverflowError
-BST,COARSE,25000,StackOverflowError
-BST,FINE,25000,StackOverflowError
-BST,FINE,25000,StackOverflowError
+BST,COARSE,26403,StackOverflowError
+BST,COARSE,26403,StackOverflowError
+BST,FINE,25348,StackOverflowError
+BST,FINE,25348,StackOverflowError
