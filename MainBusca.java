@@ -57,7 +57,9 @@ public class MainBusca {
         List<Long> dataset = loadIds(CSV_FILE);
         log("Dataset carregado: " + dataset.size() + " registros.");
 
-        init("seq.csv");
+        init("seq_random.csv");
+        init("seq_sorted.csv");
+        init("seq_reverse.csv");
         init("bin.csv");
 
         init("abb_random.csv");
@@ -96,7 +98,9 @@ public class MainBusca {
 
                 Variants v = gerarVariantes(dataset, n, TEST_SIZE);
 
-                write("seq.csv", n, benchmarkSequential(v.base, v.testSet));
+                write("seq_random.csv", n, benchmarkSequential(v.random, v.testSet));
+                write("seq_sorted.csv", n, benchmarkSequential(v.sorted, v.testSet));
+                write("seq_reverse.csv", n, benchmarkSequential(v.reverse, v.testSet));
                 write("bin.csv", n, benchmarkBinary(v.sorted, v.testSet));
 
                 if (activeABB.contains("abb_random"))

@@ -29,8 +29,7 @@ public class GerarDistribuicoes {
     static void exportar(Datasets d, int n) throws IOException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(OUTPUT_FILE))) {
             bw.write("index,random,ascending,descending," +
-                     "near_ascending_pct,near_ascending_fixed," +
-                     "near_descending_pct,near_descending_fixed");
+                     "near_ascending_pct,near_descending_pct");
             bw.newLine();
 
             for (int i = 0; i < n; i++) {
@@ -39,9 +38,7 @@ public class GerarDistribuicoes {
                     + "," + d.ascending.get(i)
                     + "," + d.descending.get(i)
                     + "," + d.nearAscendingPct.get(i)
-                    + "," + d.nearAscendingFixed.get(i)
-                    + "," + d.nearDescendingPct.get(i)
-                    + "," + d.nearDescendingFixed.get(i));
+                    + "," + d.nearDescendingPct.get(i));
                 bw.newLine();
             }
         }
@@ -52,9 +49,7 @@ public class GerarDistribuicoes {
         List<Long> ascending;
         List<Long> descending;
         List<Long> nearAscendingPct;
-        List<Long> nearAscendingFixed;
         List<Long> nearDescendingPct;
-        List<Long> nearDescendingFixed;
     }
 
     // seed derivada de n pra garantir reproducibilidade
@@ -72,13 +67,10 @@ public class GerarDistribuicoes {
         d.random = new ArrayList<>(base);
         Collections.shuffle(d.random, new Random(BASE_SEED + n));
 
-        int pctSwaps   = Math.max(1, (int) Math.round(n * NEAR_PCT));
-        int fixedSwaps = Math.max(1, (int) Math.round(Math.sqrt(n)));
+        int pctSwaps = Math.max(1, (int) Math.round(n * NEAR_PCT));
 
-        d.nearAscendingPct    = perturb(d.ascending,  pctSwaps,   new Random(BASE_SEED + n + 1));
-        d.nearAscendingFixed  = perturb(d.ascending,  fixedSwaps, new Random(BASE_SEED + n + 2));
-        d.nearDescendingPct   = perturb(d.descending, pctSwaps,   new Random(BASE_SEED + n + 3));
-        d.nearDescendingFixed = perturb(d.descending, fixedSwaps, new Random(BASE_SEED + n + 4));
+        d.nearAscendingPct  = perturb(d.ascending,  pctSwaps, new Random(BASE_SEED + n + 1));
+        d.nearDescendingPct = perturb(d.descending, pctSwaps, new Random(BASE_SEED + n + 3));
 
         return d;
     }

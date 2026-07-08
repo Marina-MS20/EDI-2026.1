@@ -45,8 +45,7 @@ public class MainOrdenacao {
         Map<String, SortAlgorithm> algoritmos = buildAlgorithms();
         List<String> distribuicoes = List.of(
                 "random", "ascending", "descending",
-                "near_ascending_pct", "near_ascending_fixed",
-                "near_descending_pct", "near_descending_fixed"
+                "near_ascending_pct", "near_descending_pct"
         );
 
         for (String alg : algoritmos.keySet()) {
@@ -209,9 +208,7 @@ public class MainOrdenacao {
         List<Long> ascending;
         List<Long> descending;
         List<Long> nearAscendingPct;
-        List<Long> nearAscendingFixed;
         List<Long> nearDescendingPct;
-        List<Long> nearDescendingFixed;
 
         Map<String, List<Long>> asMap() {
             Map<String, List<Long>> m = new HashMap<>();
@@ -219,9 +216,7 @@ public class MainOrdenacao {
             m.put("ascending", ascending);
             m.put("descending", descending);
             m.put("near_ascending_pct", nearAscendingPct);
-            m.put("near_ascending_fixed", nearAscendingFixed);
             m.put("near_descending_pct", nearDescendingPct);
-            m.put("near_descending_fixed", nearDescendingFixed);
             return m;
         }
     }
@@ -243,12 +238,9 @@ public class MainOrdenacao {
         Collections.shuffle(d.random, new Random(BASE_SEED + n));
 
         int pctSwaps = Math.max(1, (int) Math.round(n * NEAR_PCT));
-        int fixedSwaps = Math.max(1, (int) Math.round(Math.sqrt(n)));
 
-        d.nearAscendingPct   = perturb(d.ascending,  pctSwaps,   new Random(BASE_SEED + n + 1));
-        d.nearAscendingFixed = perturb(d.ascending,  fixedSwaps, new Random(BASE_SEED + n + 2));
-        d.nearDescendingPct  = perturb(d.descending, pctSwaps,   new Random(BASE_SEED + n + 3));
-        d.nearDescendingFixed = perturb(d.descending, fixedSwaps, new Random(BASE_SEED + n + 4));
+        d.nearAscendingPct  = perturb(d.ascending,  pctSwaps, new Random(BASE_SEED + n + 1));
+        d.nearDescendingPct = perturb(d.descending, pctSwaps, new Random(BASE_SEED + n + 3));
 
         return d;
     }
