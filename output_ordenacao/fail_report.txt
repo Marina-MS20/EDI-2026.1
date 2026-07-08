@@ -1,5 +1,5 @@
 COMBO,PHASE,N,ERROR
-quicksort_ascending,COARSE,13127,StackOverflowError
-quicksort_descending,COARSE,13127,StackOverflowError
-quicksort_descending,FINE,12603,StackOverflowError
-quicksort_ascending,FINE,12603,StackOverflowError
+quicksort_ascending,COARSE,16882,StackOverflowError
+quicksort_descending,COARSE,16882,StackOverflowError
+quicksort_descending,FINE,15654,StackOverflowError
+quicksort_ascending,FINE,15654,StackOverflowError

@@ -10,7 +10,7 @@ public class MainOrdenacao {
 
     private static final long BASE_SEED = 42L;
 
-    private static final double NEAR_PCT = 0.05; // 5% de trocas pra simular "quase ordenado"
+    private static final double NEAR_PCT = 0.3; // % de trocas pra simular "quase ordenado"
 
     enum Mode { FIXED_STEP, GROWTH_STEP }
 
@@ -18,13 +18,13 @@ public class MainOrdenacao {
 
     // parâmetros FIXED_STEP
     private static final int FIXED_STEP = 5_000;
-    private static final int FIXED_MAX_N = 500_000;
+    private static final int FIXED_MAX_N = 7_000_000;
     private static final int FIXED_FINE_STEP = Math.max(FIXED_STEP / 10, 1000);
 
     // parâmetros GROWTH_STEP
     private static final int GROWTH_START_N = 10;
-    private static final int GROWTH_MAX_N = 30_000;
-    private static final double GROWTH_FACTOR = 1.15;
+    private static final int GROWTH_MAX_N = 150_000;
+    private static final double GROWTH_FACTOR = 1.10;
     private static final double GROWTH_FINE_FACTOR = 1.02;
 
     static Map<String, BufferedWriter> writers = new HashMap<>();

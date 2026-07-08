@@ -19,7 +19,7 @@ public class MainBusca {
 
     // ---- parâmetros do modo antigo (FIXED_STEP): incremento aditivo fixo ----
     private static final int FIXED_STEP = 10_000;
-    private static final int FIXED_MAX_N = 7_000_000;
+    private static final int FIXED_MAX_N = 200_000;
     private static final int FIXED_FINE_STEP = Math.max(FIXED_STEP / 10, 1000);
 
     // ---- parâmetros do modo novo (GROWTH_STEP): incremento multiplicativo ----
@@ -27,10 +27,10 @@ public class MainBusca {
     // explorar a mesma faixa; ajuste se quiser outro teto.
     private static final int GROWTH_START_N = 10;
     private static final int GROWTH_MAX_N = FIXED_MAX_N;
-    private static final double GROWTH_FACTOR = 1.15;
+    private static final double GROWTH_FACTOR = 1.10;
     private static final double GROWTH_FINE_FACTOR = 1.02;
 
-    // teto separado para a AVL: o balanco() do professor recalcula as alturas
+    // teto separado para a AVL: o balanco() recalcula as alturas
     // percorrendo as subárvores inteiras a cada inserção (O(n) por inserção,
     // O(n²) no total) — medido ~28s para construir com n=100.000. Acima disso
     // a construção fica inviável para o benchmark.
