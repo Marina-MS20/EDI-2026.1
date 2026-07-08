@@ -1,61 +1,31 @@
 import java.io.*;
 import java.util.*;
 
-/**
- * Benchmark de algoritmos de ordenação.
- *
- * Arquitetura (mesmo espírito do projeto de estruturas de busca anterior):
- *  1) Carregamento: lê o dataset bruto (mesmo CSV de origem) e mantém a
- *     lista base imutável.
- *  2) Geração de distribuições: a partir do slice dataset[0..n], gera as
- *     variantes pedidas (aleatório, crescente, decrescente, quase-crescente
- *     e quase-decrescente — estes dois últimos em duas versões: perturbação
- *     percentual e perturbação de contagem fixa), tudo de forma
- *     determinística por n (seed derivada de BASE_SEED + n).
- *  3) Algoritmos: QuickSort (pivô ingênuo = primeiro elemento, recursivo de
- *     verdade — pode estourar a pilha em entradas já ordenadas/quase
- *     ordenadas, e é isso que queremos observar), MergeSort (recursivo,
- *     profundidade O(log n), não deve estourar), HeapSort (iterativo),
- *     InsertionSort, SelectionSort e BubbleSort (todos O(n²), iterativos).
- *     Cada um só ordena e conta comparações/cópias — nenhuma lógica de
- *     experimento aqui.
- *  4) Experimento: roda todas as combinações algoritmo × distribuição
- *     (6 × 7 = 42) ao longo de uma sequência de n crescente, no modo
- *     escolhido (GROWTH_STEP ou FIXED_STEP). Quando uma combinação
- *     estoura, registra o ponto como FAIL no CSV, marca o failPoint e,
- *     depois do coarse inteiro, refina só aquela combinação com um fator
- *     de crescimento menor até estourar de novo (ou não).
- */
+// benchmark dos algoritmos de ordenação - EDI 2026.1
 public class MainOrdenacao {
 
-    // ===================== CONFIG GERAL =====================
-
-    private static final String CSV_FILE = "solarradiation.csv"; // ajuste o caminho se necessário
-    private static final String OUTPUT_DIR = "output_ordenacao";  // pasta NOVA, não reaproveita a do projeto anterior
+    private static final String CSV_FILE = "solarradiation.csv";
+    private static final String OUTPUT_DIR = "output_ordenacao";
     private static final String REPORT_FILE = OUTPUT_DIR + "/fail_report.txt";
 
     private static final long BASE_SEED = 42L;
 
-    // perturbação para "quase crescente" / "quase decrescente"
-    private static final double NEAR_PCT = 0.05; // 5% de trocas aleatórias
+    private static final double NEAR_PCT = 0.05; // 5% de trocas pra simular "quase ordenado"
 
     enum Mode { FIXED_STEP, GROWTH_STEP }
 
-    // modo ativo do experimento — troque aqui para alternar
-    private static final Mode MODE = Mode.GROWTH_STEP;
+    private static final Mode MODE = Mode.GROWTH_STEP; // mude aqui pra trocar o modo
 
-    // ---- parâmetros do modo antigo (FIXED_STEP) ----
+    // parâmetros FIXED_STEP
     private static final int FIXED_STEP = 5_000;
     private static final int FIXED_MAX_N = 500_000;
     private static final int FIXED_FINE_STEP = Math.max(FIXED_STEP / 10, 1000);
 
-    // ---- parâmetros do modo novo (GROWTH_STEP), confirmados ----
+    // parâmetros GROWTH_STEP
     private static final int GROWTH_START_N = 10;
     private static final int GROWTH_MAX_N = 30_000;
     private static final double GROWTH_FACTOR = 1.15;
     private static final double GROWTH_FINE_FACTOR = 1.02;
-
-    // ===================== ESTADO DO EXPERIMENTO =====================
 
     static Map<String, BufferedWriter> writers = new HashMap<>();
     static Set<String> activeCombos = new LinkedHashSet<>();
@@ -93,8 +63,7 @@ public class MainOrdenacao {
             report.write("COMBO,PHASE,N,ERROR");
             report.newLine();
 
-            // ===================== FASE COARSE =====================
-
+            // fase coarse
             List<Integer> coarseSeq = buildCoarseSequence(dataset.size());
             log("Iniciando FASE COARSE — " + coarseSeq.size() + " pontos de n (de "
                     + coarseSeq.get(0) + " a " + coarseSeq.get(coarseSeq.size() - 1) + ")");
@@ -120,8 +89,7 @@ public class MainOrdenacao {
 
             log(String.format("[COARSE 100.0%%] fase coarse concluída."));
 
-            // ===================== FASE FINE =====================
-
+            // fase fine - só roda pras combinações que estouraram
             if (failPoint.isEmpty()) {
                 log("Nenhuma combinação estourou na fase coarse — FASE FINE não será executada.");
             } else {
@@ -167,8 +135,6 @@ public class MainOrdenacao {
         log("Benchmark concluído. Resultados em '" + OUTPUT_DIR + "'.");
     }
 
-    // ===================== COMBO (algoritmo x distribuição) =====================
-
     static class Combo {
         final String algorithm;
         final String distribution;
@@ -180,8 +146,6 @@ public class MainOrdenacao {
             this.key = algorithm + "_" + distribution;
         }
     }
-
-    // ===================== SEQUÊNCIAS DE n =====================
 
     static List<Integer> buildCoarseSequence(int datasetSize) {
         if (MODE == Mode.FIXED_STEP) {
@@ -205,12 +169,7 @@ public class MainOrdenacao {
         }
     }
 
-    /**
-     * Gera uma sequência de n crescendo multiplicativamente por 'factor',
-     * partindo de 'start' até 'max' (inclusive). Se includeStart=false, o
-     * valor 'start' em si é excluído do resultado (usado na fase fine,
-     * onde 'start' já foi testado com sucesso na fase anterior).
-     */
+    // cresce multiplicando por factor; includeStart=false pula o valor inicial (já testado antes)
     static List<Integer> buildGrowthSequence(double start, int max, double factor, boolean includeStart) {
         List<Integer> seq = new ArrayList<>();
 
@@ -238,14 +197,12 @@ public class MainOrdenacao {
         }
 
         if (seq.isEmpty()) {
-            // garante ao menos um ponto (ex.: janela fine muito estreita)
+            // janela muito estreita na fase fine, garante pelo menos um ponto
             seq.add(Math.min(max, lastAdded + 1));
         }
 
         return seq;
     }
-
-    // ===================== GERAÇÃO DE DISTRIBUIÇÕES =====================
 
     static class Datasets {
         List<String> random;
@@ -269,13 +226,7 @@ public class MainOrdenacao {
         }
     }
 
-    /**
-     * Gera todas as distribuições para um dado n, de forma determinística:
-     * toda seed usada é derivada de (BASE_SEED, n, offset fixo), nunca de um
-     * Random compartilhado mutando entre chamadas. Assim, gerar os dados
-     * para um n específico dá sempre o mesmo resultado, seja na fase coarse
-     * ou na fase fine.
-     */
+    // seed derivada de n pra garantir que o mesmo n sempre gera os mesmos dados
     static Datasets gerarDistribuicoes(List<String> dataset, int n) {
 
         Datasets d = new Datasets();
@@ -294,10 +245,9 @@ public class MainOrdenacao {
         int pctSwaps = Math.max(1, (int) Math.round(n * NEAR_PCT));
         int fixedSwaps = Math.max(1, (int) Math.round(Math.sqrt(n)));
 
-        d.nearAscendingPct = perturb(d.ascending, pctSwaps, new Random(BASE_SEED + n + 1));
-        d.nearAscendingFixed = perturb(d.ascending, fixedSwaps, new Random(BASE_SEED + n + 2));
-
-        d.nearDescendingPct = perturb(d.descending, pctSwaps, new Random(BASE_SEED + n + 3));
+        d.nearAscendingPct   = perturb(d.ascending,  pctSwaps,   new Random(BASE_SEED + n + 1));
+        d.nearAscendingFixed = perturb(d.ascending,  fixedSwaps, new Random(BASE_SEED + n + 2));
+        d.nearDescendingPct  = perturb(d.descending, pctSwaps,   new Random(BASE_SEED + n + 3));
         d.nearDescendingFixed = perturb(d.descending, fixedSwaps, new Random(BASE_SEED + n + 4));
 
         return d;
@@ -317,8 +267,6 @@ public class MainOrdenacao {
 
         return copy;
     }
-
-    // ===================== SAFE RUN =====================
 
     static boolean safeRunSort(Combo combo, int n, List<String> data,
                                 SortAlgorithm algo, BufferedWriter report,
@@ -356,19 +304,6 @@ public class MainOrdenacao {
         }
     }
 
-    // ===================== ALGORITMOS DE ORDENAÇÃO =====================
-    //
-    // Cada algoritmo só ordena e conta comparações/cópias — nenhuma lógica
-    // de experimento, falha ou fase entra aqui. O QuickSort usa pivô
-    // ingênuo (primeiro elemento) e é recursivo de verdade: em entradas já
-    // ordenadas ou quase ordenadas ele particiona de forma desbalanceada e
-    // a profundidade de recursão vira O(n) — para n grande o suficiente,
-    // isso estoura a pilha (StackOverflowError) de fato. É exatamente esse
-    // estouro que a camada de experimento (safeRunSort) captura e registra.
-    // MergeSort também é recursivo, mas sua divisão é sempre balanceada
-    // (profundidade O(log n)), então não deve estourar nas faixas de n
-    // usadas aqui.
-
     interface SortAlgorithm {
         void sort(String[] arr, Counters c);
     }
@@ -380,188 +315,22 @@ public class MainOrdenacao {
 
     static Map<String, SortAlgorithm> buildAlgorithms() {
         Map<String, SortAlgorithm> m = new LinkedHashMap<>();
-        m.put("quicksort", (arr, c) -> quickSort(arr, 0, arr.length - 1, c));
-        m.put("mergesort", (arr, c) -> mergeSort(arr, 0, arr.length - 1, c));
-        m.put("heapsort", MainOrdenacao::heapSort);
-        m.put("insertionsort", MainOrdenacao::insertionSort);
-        m.put("selectionsort", MainOrdenacao::selectionSort);
-        m.put("bubblesort", MainOrdenacao::bubbleSort);
+        m.put("quicksort",     (arr, c) -> new Algoritmo(arr, c).quickSort());
+        m.put("mergesort",     (arr, c) -> new Algoritmo(arr, c).mergeSort());
+        m.put("heapsort",      (arr, c) -> new Algoritmo(arr, c).heapSort());
+        m.put("shellsort",     (arr, c) -> new Algoritmo(arr, c).shellSort());
+        m.put("insertionsort", (arr, c) -> new Algoritmo(arr, c).insertionSort());
+        m.put("selectionsort", (arr, c) -> new Algoritmo(arr, c).selectionSort());
+        m.put("bubblesort",    (arr, c) -> new Algoritmo(arr, c).bubbleSort());
         return m;
     }
-
-    static void swap(String[] arr, int i, int j, Counters c) {
-        String tmp = arr[i];
-        arr[i] = arr[j];
-        c.copies++;
-        arr[j] = tmp;
-        c.copies++;
-    }
-
-    // ---- BubbleSort: O(n²), apenas para fins comparativos ----
-    static void bubbleSort(String[] arr, Counters c) {
-        int n = arr.length;
-        for (int i = 0; i < n - 1; i++) {
-            for (int j = 0; j < n - 1 - i; j++) {
-                c.comparisons++;
-                if (arr[j].compareTo(arr[j + 1]) > 0) {
-                    swap(arr, j, j + 1, c);
-                }
-            }
-        }
-    }
-
-    // ---- SelectionSort: O(n²) ----
-    static void selectionSort(String[] arr, Counters c) {
-        int n = arr.length;
-        for (int i = 0; i < n - 1; i++) {
-            int min = i;
-            for (int j = i + 1; j < n; j++) {
-                c.comparisons++;
-                if (arr[j].compareTo(arr[min]) < 0) min = j;
-            }
-            if (min != i) swap(arr, i, min, c);
-        }
-    }
-
-    // ---- InsertionSort: O(n²) no pior caso ----
-    static void insertionSort(String[] arr, Counters c) {
-        int n = arr.length;
-        for (int i = 1; i < n; i++) {
-            String key = arr[i];
-            int j = i - 1;
-
-            while (j >= 0) {
-                c.comparisons++;
-                if (arr[j].compareTo(key) > 0) {
-                    arr[j + 1] = arr[j];
-                    c.copies++;
-                    j--;
-                } else {
-                    break;
-                }
-            }
-
-            arr[j + 1] = key;
-            c.copies++;
-        }
-    }
-
-    // ---- HeapSort: O(n log n), iterativo (sift-down recursivo é O(log n), seguro) ----
-    static void heapSort(String[] arr, Counters c) {
-        int n = arr.length;
-
-        for (int i = n / 2 - 1; i >= 0; i--) {
-            siftDown(arr, n, i, c);
-        }
-
-        for (int end = n - 1; end > 0; end--) {
-            swap(arr, 0, end, c);
-            siftDown(arr, end, 0, c);
-        }
-    }
-
-    static void siftDown(String[] arr, int size, int root, Counters c) {
-        int largest = root;
-        int left = 2 * root + 1;
-        int right = 2 * root + 2;
-
-        if (left < size) {
-            c.comparisons++;
-            if (arr[left].compareTo(arr[largest]) > 0) largest = left;
-        }
-        if (right < size) {
-            c.comparisons++;
-            if (arr[right].compareTo(arr[largest]) > 0) largest = right;
-        }
-
-        if (largest != root) {
-            swap(arr, root, largest, c);
-            siftDown(arr, size, largest, c);
-        }
-    }
-
-    // ---- MergeSort: O(n log n), recursivo, profundidade O(log n) ----
-    static void mergeSort(String[] arr, int lo, int hi, Counters c) {
-        if (lo >= hi) return;
-
-        int mid = (lo + hi) / 2;
-        mergeSort(arr, lo, mid, c);
-        mergeSort(arr, mid + 1, hi, c);
-        merge(arr, lo, mid, hi, c);
-    }
-
-    static void merge(String[] arr, int lo, int mid, int hi, Counters c) {
-        String[] left = Arrays.copyOfRange(arr, lo, mid + 1);
-        String[] right = Arrays.copyOfRange(arr, mid + 1, hi + 1);
-
-        int i = 0, j = 0, k = lo;
-
-        while (i < left.length && j < right.length) {
-            c.comparisons++;
-            if (left[i].compareTo(right[j]) <= 0) {
-                arr[k++] = left[i++];
-            } else {
-                arr[k++] = right[j++];
-            }
-            c.copies++;
-        }
-
-        while (i < left.length) {
-            arr[k++] = left[i++];
-            c.copies++;
-        }
-        while (j < right.length) {
-            arr[k++] = right[j++];
-            c.copies++;
-        }
-    }
-
-    // ---- QuickSort: O(n log n) caso médio, pivô ingênuo (primeiro elemento) ----
-    // Recursivo de verdade: em entradas já ordenadas/quase ordenadas, o
-    // particionamento é desbalanceado e a profundidade de recursão cresce
-    // linearmente com n — é essa a exposição de pior caso que se quer medir.
-    static void quickSort(String[] arr, int lo, int hi, Counters c) {
-        if (lo >= hi) return;
-
-        int p = partition(arr, lo, hi, c);
-
-        quickSort(arr, lo, p - 1, c);
-        quickSort(arr, p + 1, hi, c);
-    }
-
-    static int partition(String[] arr, int lo, int hi, Counters c) {
-        String pivot = arr[lo]; // pivô ingênuo: primeiro elemento
-
-        int i = lo + 1;
-        int j = hi;
-
-        while (true) {
-            while (i <= hi) {
-                c.comparisons++;
-                if (arr[i].compareTo(pivot) > 0) break;
-                i++;
-            }
-            while (j > lo) {
-                c.comparisons++;
-                if (arr[j].compareTo(pivot) < 0) break;
-                j--;
-            }
-            if (i >= j) break;
-            swap(arr, i, j, c);
-        }
-
-        swap(arr, lo, j, c);
-        return j;
-    }
-
-    // ===================== LOAD =====================
 
     static List<String> loadIds(String file) throws IOException {
 
         List<String> ids = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            br.readLine(); // cabeçalho
+            br.readLine(); // pula cabeçalho
 
             String line;
             while ((line = br.readLine()) != null) {
@@ -572,8 +341,6 @@ public class MainOrdenacao {
 
         return ids;
     }
-
-    // ===================== CSV =====================
 
     static void init(String f) throws IOException {
         BufferedWriter bw = new BufferedWriter(new FileWriter(OUTPUT_DIR + "/" + f));
@@ -600,9 +367,213 @@ public class MainOrdenacao {
         }
     }
 
-    // ===================== LOG SERIAL =====================
-
     static void log(String message) {
         System.out.println("[" + new Date() + "] " + message);
+    }
+    
+    static class Algoritmo {
+
+        private final String[] a;
+        private final int nElems;
+        private final Counters c;
+
+        Algoritmo(String[] data, Counters counters) {
+            this.a      = data;
+            this.nElems = data.length;
+            this.c      = counters;
+        }
+
+        private void swap(int one, int two) {
+            String temp = a[one];
+            a[one] = a[two];
+            c.copies++;
+            a[two] = temp;
+            c.copies++;
+        }
+
+        //--------------------------------------------------------------
+        public void bubbleSort()
+        {
+            int out, in;
+            for(out=nElems-1; out>=1; out--)
+                for(in=0; in<out; in++) {
+                    c.comparisons++;
+                    if( a[in].compareTo(a[in+1]) > 0 )
+                        swap(in, in+1);
+                }
+        }
+        //--------------------------------------------------------------
+
+        //--------------------------------------------------------------
+        public void selectionSort() {
+            int out, in, min;
+            for(out=0; out<nElems-1; out++) {
+                min = out;
+                for(in=out+1; in<nElems; in++) {
+                    c.comparisons++;
+                    if(a[in].compareTo(a[min]) < 0)
+                        min = in;
+                }
+                swap(out, min);
+            }
+        }
+        //--------------------------------------------------------------
+
+        //--------------------------------------------------------------
+        public void insertionSort() {
+            int in, out;
+            for(out=1; out<nElems; out++) {
+                String temp = a[out];
+                in = out;
+                while(in>0 && a[in-1].compareTo(temp) >= 0) {
+                    a[in] = a[in-1];
+                    c.copies++;
+                    --in;
+                }
+                a[in] = temp;
+                c.copies++;
+            }
+        }
+        //--------------------------------------------------------------
+
+        //--------------------------------------------------------------
+        public void shellSort()
+        {
+            int inner, outer;
+            String temp;
+            int h = 1;
+            while(h <= nElems/3)
+                h = h*3 + 1;
+            while(h>0)
+            {
+                for(outer=h; outer<nElems; outer++)
+                {
+                    temp = a[outer];
+                    inner = outer;
+                    while(inner > h-1 && a[inner-h].compareTo(temp) >= 0)
+                    {
+                        a[inner] = a[inner-h];
+                        c.copies++;
+                        inner -= h;
+                    }
+                    a[inner] = temp;
+                    c.copies++;
+                }
+                h = (h-1) / 3;
+            }
+        }
+        //--------------------------------------------------------------
+
+        //--------------------------------------------------------------
+        public void mergeSort()
+        {
+            String[] workSpace = new String[nElems];
+            recMergeSort(workSpace, 0, nElems - 1);
+        }
+
+        private void recMergeSort(String[] workSpace, int lowerBound, int upperBound)
+        {
+            if(lowerBound == upperBound)
+                return;
+            else
+            {
+                int mid = (lowerBound + upperBound)/2;
+                recMergeSort(workSpace, lowerBound, mid);
+                recMergeSort(workSpace, mid + 1, upperBound);
+                merge(workSpace, lowerBound, mid + 1, upperBound);
+            }
+        }
+
+        private void merge(String[] workSpace, int lowPtr, int highPtr, int upperBound)
+        {
+            int j = 0;
+            int lowerBound = lowPtr;
+            int mid = highPtr - 1;
+            int n = upperBound - lowerBound + 1;
+            while(lowPtr <= mid && highPtr <= upperBound)
+            {
+                c.comparisons++;
+                if(a[lowPtr].compareTo(a[highPtr]) < 0)
+                    workSpace[j++] = a[lowPtr++];
+                else
+                    workSpace[j++] = a[highPtr++];
+                c.copies++;
+            }
+            while(lowPtr <= mid) {
+                workSpace[j++] = a[lowPtr++];
+                c.copies++;
+            }
+            while(highPtr <= upperBound) {
+                workSpace[j++] = a[highPtr++];
+                c.copies++;
+            }
+            for(j = 0; j < n; j++) {
+                a[lowerBound + j] = workSpace[j];
+                c.copies++;
+            }
+        }
+        //--------------------------------------------------------------
+
+        // heapsort
+        public void heapSort() {
+            for (int i = nElems / 2 - 1; i >= 0; i--)
+                siftDown(nElems, i);
+            for (int end = nElems - 1; end > 0; end--) {
+                swap(0, end);
+                siftDown(end, 0);
+            }
+        }
+
+        private void siftDown(int size, int root) {
+            int largest = root;
+            int left  = 2 * root + 1;
+            int right = 2 * root + 2;
+            if (left < size) {
+                c.comparisons++;
+                if (a[left].compareTo(a[largest]) > 0) largest = left;
+            }
+            if (right < size) {
+                c.comparisons++;
+                if (a[right].compareTo(a[largest]) > 0) largest = right;
+            }
+            if (largest != root) {
+                swap(root, largest);
+                siftDown(size, largest);
+            }
+        }
+
+        // quicksort com pivô no primeiro elemento - estoura pilha em entrada já ordenada
+        public void quickSort() {
+            quickSort(0, nElems - 1);
+        }
+
+        private void quickSort(int lo, int hi) {
+            if (lo >= hi) return;
+            int p = partition(lo, hi);
+            quickSort(lo, p - 1);
+            quickSort(p + 1, hi);
+        }
+
+        private int partition(int lo, int hi) {
+            String pivot = a[lo];
+            int i = lo + 1;
+            int j = hi;
+            while (true) {
+                while (i <= hi) {
+                    c.comparisons++;
+                    if (a[i].compareTo(pivot) > 0) break;
+                    i++;
+                }
+                while (j > lo) {
+                    c.comparisons++;
+                    if (a[j].compareTo(pivot) < 0) break;
+                    j--;
+                }
+                if (i >= j) break;
+                swap(i, j);
+            }
+            swap(lo, j);
+            return j;
+        }
     }
 }
