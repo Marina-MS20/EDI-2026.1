@@ -285,7 +285,13 @@ public class MainBusca {
         v.random = new ArrayList<>(v.base);
         Collections.shuffle(v.random, shuffleRandom);
 
-        Random testRandom = new Random(BASE_SEED + n);
+        // offset +1 pra não reusar a seed do shuffle acima: com a mesma seed,
+        // Collections.shuffle produz a mesma permutação de índices sobre uma
+        // lista do mesmo tamanho, então o testSet saía sempre igual aos
+        // primeiros 'testSize' elementos de v.random — os alvos ficavam
+        // sempre nas mesmas posições baixas, travando as comparações da
+        // busca sequencial num valor quase constante, independente de n.
+        Random testRandom = new Random(BASE_SEED + n + 1);
         v.testSet = pickTestSet(v.base, testSize, testRandom);
 
         return v;
