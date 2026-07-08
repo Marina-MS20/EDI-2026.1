@@ -1,1 +1,6 @@
 solarradiation.csv
+output/
+out/
+*.pdf
+*.iml
+.idea/
