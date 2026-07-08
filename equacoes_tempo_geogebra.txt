@@ -1,0 +1,78 @@
+Equacoes de tempo (time_ns) por n para cada algoritmo de ordenacao
+====================================================================
+
+Fonte: relatorio_regressoes_ordenacao.txt (regenerado apos remover o
+modelo O(n^3) do script de regressao, que estava vencendo por overfitting
+mesmo quando nenhum algoritmo testado e de fato cubico).
+
+Dominio valido: n de ~10 ate 137.430, EXCETO quickAsc e quickDesc, que so
+sao validas ate n=15.347 - a partir dai o quicksort (pivo ingenuo = primeiro
+elemento) estoura a pilha em entrada ja ordenada/decrescente. Por isso essas
+duas ja vem com restricao de dominio usando If().
+
+Como usar: abra o GeoGebra Classic, cole os blocos abaixo (uma linha por
+vez, ou o bloco inteiro) na barra de Entrada. ln(n) e log natural, sintaxe
+nativa do GeoGebra.
+
+--------------------------------------------------------------------
+BUBBLE SORT
+--------------------------------------------------------------------
+bubbleAsc(n) = 0.193424n^2 - 98.859513n + 68965.755949
+bubbleDesc(n) = 0.6225029n^2 + 258.623050n - 1161505.519426
+bubbleNearAsc(n) = 0.8571827n^2 - 3520.446501n + 1532458.190105
+bubbleNearDesc(n) = 1.134660n^2 - 5818.831657n + 1337867.932016
+bubbleRand(n) = 1.342304n^2 - 3787.694750n + 2602604.645596
+
+--------------------------------------------------------------------
+SELECTION SORT
+--------------------------------------------------------------------
+selectAsc(n) = 0.2013853n^2 - 356.980291n + 1119964.593415
+selectDesc(n) = 0.2099227n^2 - 212.563086n + 854413.296833
+selectNearAsc(n) = 0.1989269n^2 - 78.128709n + 351832.011588
+selectNearDesc(n) = 0.2016596n^2 - 298.336540n + 657721.799770
+selectRand(n) = 0.1966158n^2 + 176.881020n - 243382.845324
+
+--------------------------------------------------------------------
+INSERTION SORT
+--------------------------------------------------------------------
+insertAsc(n) = -0.000001853922n^2 + 2.470983n + 1067.842414
+insertDesc(n) = 0.4148332n^2 - 10620.054144n + 31743319.740194
+insertNearAsc(n) = 0.07609568n^2 - 329.674565n + 962988.706842
+insertNearDesc(n) = 0.1886138n^2 + 1086.281253n - 1678946.780825
+insertRand(n) = 0.1647162n^2 - 1800.276861n + 4414023.993634
+
+--------------------------------------------------------------------
+SHELL SORT
+--------------------------------------------------------------------
+shellAsc(n) = 1.510012n*ln(n) + 3609.314096
+shellDesc(n) = 2.521495n*ln(n) + 13394.619808
+shellNearAsc(n) = 9.432903n*ln(n) - 26627.175715
+shellNearDesc(n) = 0.0001860717n^2 + 85.806053n - 32542.769479
+shellRand(n) = 9.817371n*ln(n) - 31147.782358
+
+--------------------------------------------------------------------
+MERGE SORT
+--------------------------------------------------------------------
+mergeAsc(n) = 3.029248n*ln(n) + 7516.802151
+mergeDesc(n) = 3.108163n*ln(n) - 2990.770153
+mergeNearAsc(n) = 5.981873n*ln(n) + 20440.072504
+mergeNearDesc(n) = 6.100844n*ln(n) + 25711.149601
+mergeRand(n) = 8.337428n*ln(n) + 24133.436055
+
+--------------------------------------------------------------------
+HEAP SORT
+--------------------------------------------------------------------
+heapAsc(n) = 0.00002965020n^2 + 55.679393n - 2929.037820
+heapDesc(n) = 0.00005622604n^2 + 56.971671n + 2696.937596
+heapNearAsc(n) = 7.402395n*ln(n) + 27425.166627
+heapNearDesc(n) = 7.906812n*ln(n) + 6717.107511
+heapRand(n) = 9.562552n*ln(n) + 1505.358509
+
+--------------------------------------------------------------------
+QUICK SORT (pivo ingenuo - ver nota de dominio no topo)
+--------------------------------------------------------------------
+quickAsc(n) = If(n <= 15347, 0.2245916n^2 + 52.676139n + 41708.672574)
+quickDesc(n) = If(n <= 15347, 0.1977487n^2 + 109.856912n - 7279.874263)
+quickNearAsc(n) = 0.0001875999n^2 + 41.068994n + 15303.975202
+quickNearDesc(n) = 0.0002357779n^2 + 51.456648n + 22095.655576
+quickRand(n) = 0.0001216573n^2 + 65.287385n + 24703.961613

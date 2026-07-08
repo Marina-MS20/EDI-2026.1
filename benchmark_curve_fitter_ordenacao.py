@@ -43,10 +43,6 @@ def quadratic(x, a, b, c):
     return a*x*x+b*x+c
 
 
-def cubic(x, a, b, c, d):
-    return a*x**3+b*x*x+c*x+d
-
-
 
 MODELS = {
 
@@ -73,11 +69,6 @@ MODELS = {
     "O(n²)": (
         quadratic,
         3
-    ),
-
-    "O(n³)": (
-        cubic,
-        4
     )
 }
 
@@ -120,13 +111,6 @@ def derivative(model, params, n):
         a,b,c = params
 
         return 2*a*n+b
-
-
-    elif model == "O(n³)":
-
-        a,b,c,d = params
-
-        return 3*a*n*n + 2*b*n + c
 
 
 
@@ -261,16 +245,6 @@ def equation(name,p):
             f"y = {p[0]:.6e}n²"
             f" + {p[1]:.6f}n"
             f" + {p[2]:.6f}"
-        )
-
-
-    if name=="O(n³)":
-
-        return (
-            f"y = {p[0]:.6e}n³"
-            f" + {p[1]:.6e}n²"
-            f" + {p[2]:.6f}n"
-            f" + {p[3]:.6f}"
         )
 
 
