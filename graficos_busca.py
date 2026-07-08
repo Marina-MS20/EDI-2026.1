@@ -14,8 +14,8 @@ def scientific_name(value):
 # Escalas Y máximas individuais (SEMPRE respeitadas — o eixo Y de cada
 # gráfico vai de 0 até este valor, independente do valor máximo real dos
 # dados. Isso garante que todos os gráficos fiquem na mesma escala.)
-Y_MAX_COMPARISONS = 1e4
-Y_MAX_TIME_MS = 1e4
+Y_MAX_COMPARISONS = 1e5
+Y_MAX_TIME_MS = 1e5
 
 
 INPUT_DIR = "output"
