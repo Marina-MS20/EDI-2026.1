@@ -39,7 +39,7 @@ public class MainOrdenacao {
 
         log("Modo de experimento: " + MODE);
         log("Carregando dataset de '" + CSV_FILE + "'...");
-        List<String> dataset = loadIds(CSV_FILE);
+        List<Long> dataset = loadIds(CSV_FILE);
         log("Dataset carregado: " + dataset.size() + " registros.");
 
         Map<String, SortAlgorithm> algoritmos = buildAlgorithms();
@@ -75,12 +75,12 @@ public class MainOrdenacao {
                 log(String.format("[COARSE %5.1f%%] processando n=%d", pct, n));
 
                 Datasets d = gerarDistribuicoes(dataset, n);
-                Map<String, List<String>> distMap = d.asMap();
+                Map<String, List<Long>> distMap = d.asMap();
 
                 for (Combo combo : combosByKey.values()) {
                     if (!activeCombos.contains(combo.key)) continue;
 
-                    List<String> base = distMap.get(combo.distribution);
+                    List<Long> base = distMap.get(combo.distribution);
                     SortAlgorithm algo = algoritmos.get(combo.algorithm);
 
                     safeRunSort(combo, n, base, algo, report, "COARSE");
@@ -116,7 +116,7 @@ public class MainOrdenacao {
                     log(String.format("[FINE %s %5.1f%%] processando n=%d", comboKey, pct, n));
 
                     Datasets d = gerarDistribuicoes(dataset, n);
-                    List<String> base = d.asMap().get(combo.distribution);
+                    List<Long> base = d.asMap().get(combo.distribution);
 
                     boolean ok = safeRunSort(combo, n, base, algo, report, "FINE");
 
@@ -205,16 +205,16 @@ public class MainOrdenacao {
     }
 
     static class Datasets {
-        List<String> random;
-        List<String> ascending;
-        List<String> descending;
-        List<String> nearAscendingPct;
-        List<String> nearAscendingFixed;
-        List<String> nearDescendingPct;
-        List<String> nearDescendingFixed;
+        List<Long> random;
+        List<Long> ascending;
+        List<Long> descending;
+        List<Long> nearAscendingPct;
+        List<Long> nearAscendingFixed;
+        List<Long> nearDescendingPct;
+        List<Long> nearDescendingFixed;
 
-        Map<String, List<String>> asMap() {
-            Map<String, List<String>> m = new HashMap<>();
+        Map<String, List<Long>> asMap() {
+            Map<String, List<Long>> m = new HashMap<>();
             m.put("random", random);
             m.put("ascending", ascending);
             m.put("descending", descending);
@@ -227,11 +227,11 @@ public class MainOrdenacao {
     }
 
     // seed derivada de n pra garantir que o mesmo n sempre gera os mesmos dados
-    static Datasets gerarDistribuicoes(List<String> dataset, int n) {
+    static Datasets gerarDistribuicoes(List<Long> dataset, int n) {
 
         Datasets d = new Datasets();
 
-        List<String> base = new ArrayList<>(dataset.subList(0, n));
+        List<Long> base = new ArrayList<>(dataset.subList(0, n));
 
         d.ascending = new ArrayList<>(base);
         Collections.sort(d.ascending);
@@ -253,8 +253,8 @@ public class MainOrdenacao {
         return d;
     }
 
-    static List<String> perturb(List<String> sortedBase, int swaps, Random r) {
-        List<String> copy = new ArrayList<>(sortedBase);
+    static List<Long> perturb(List<Long> sortedBase, int swaps, Random r) {
+        List<Long> copy = new ArrayList<>(sortedBase);
         int size = copy.size();
 
         if (size < 2) return copy;
@@ -268,14 +268,15 @@ public class MainOrdenacao {
         return copy;
     }
 
-    static boolean safeRunSort(Combo combo, int n, List<String> data,
+    static boolean safeRunSort(Combo combo, int n, List<Long> data,
                                 SortAlgorithm algo, BufferedWriter report,
                                 String phase) throws IOException {
 
         String file = combo.key + ".csv";
 
         try {
-            String[] arr = data.toArray(new String[0]);
+            long[] arr = new long[data.size()];
+            for (int i = 0; i < arr.length; i++) arr[i] = data.get(i);
             Counters c = new Counters();
 
             long start = System.nanoTime();
@@ -305,7 +306,7 @@ public class MainOrdenacao {
     }
 
     interface SortAlgorithm {
-        void sort(String[] arr, Counters c);
+        void sort(long[] arr, Counters c);
     }
 
     static class Counters {
@@ -325,9 +326,12 @@ public class MainOrdenacao {
         return m;
     }
 
-    static List<String> loadIds(String file) throws IOException {
+    // le a primeira coluna como numero - se carregar como String a ordenacao
+    // vira lexicografica (1, 10, 100, 2, 20...) e as distribuicoes
+    // crescente/decrescente ficam erradas
+    static List<Long> loadIds(String file) throws IOException {
 
-        List<String> ids = new ArrayList<>();
+        List<Long> ids = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             br.readLine(); // pula cabeçalho
@@ -335,7 +339,7 @@ public class MainOrdenacao {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] v = line.split(",", -1);
-                if (v.length > 0) ids.add(v[0]);
+                if (v.length > 0 && !v[0].isEmpty()) ids.add(Long.parseLong(v[0]));
             }
         }
 
@@ -370,21 +374,21 @@ public class MainOrdenacao {
     static void log(String message) {
         System.out.println("[" + new Date() + "] " + message);
     }
-    
+
     static class Algoritmo {
 
-        private final String[] a;
+        private final long[] a;
         private final int nElems;
         private final Counters c;
 
-        Algoritmo(String[] data, Counters counters) {
+        Algoritmo(long[] data, Counters counters) {
             this.a      = data;
             this.nElems = data.length;
             this.c      = counters;
         }
 
         private void swap(int one, int two) {
-            String temp = a[one];
+            long temp = a[one];
             a[one] = a[two];
             c.copies++;
             a[two] = temp;
@@ -398,7 +402,7 @@ public class MainOrdenacao {
             for(out=nElems-1; out>=1; out--)
                 for(in=0; in<out; in++) {
                     c.comparisons++;
-                    if( a[in].compareTo(a[in+1]) > 0 )
+                    if( a[in] > a[in+1] )
                         swap(in, in+1);
                 }
         }
@@ -411,7 +415,7 @@ public class MainOrdenacao {
                 min = out;
                 for(in=out+1; in<nElems; in++) {
                     c.comparisons++;
-                    if(a[in].compareTo(a[min]) < 0)
+                    if(a[in] < a[min])
                         min = in;
                 }
                 swap(out, min);
@@ -423,12 +427,15 @@ public class MainOrdenacao {
         public void insertionSort() {
             int in, out;
             for(out=1; out<nElems; out++) {
-                String temp = a[out];
+                long temp = a[out];
                 in = out;
-                while(in>0 && a[in-1].compareTo(temp) >= 0) {
-                    a[in] = a[in-1];
-                    c.copies++;
-                    --in;
+                while(in>0) {
+                    c.comparisons++;
+                    if(a[in-1] >= temp) {
+                        a[in] = a[in-1];
+                        c.copies++;
+                        --in;
+                    } else break;
                 }
                 a[in] = temp;
                 c.copies++;
@@ -440,7 +447,7 @@ public class MainOrdenacao {
         public void shellSort()
         {
             int inner, outer;
-            String temp;
+            long temp;
             int h = 1;
             while(h <= nElems/3)
                 h = h*3 + 1;
@@ -450,11 +457,13 @@ public class MainOrdenacao {
                 {
                     temp = a[outer];
                     inner = outer;
-                    while(inner > h-1 && a[inner-h].compareTo(temp) >= 0)
-                    {
-                        a[inner] = a[inner-h];
-                        c.copies++;
-                        inner -= h;
+                    while(inner > h-1) {
+                        c.comparisons++;
+                        if(a[inner-h] >= temp) {
+                            a[inner] = a[inner-h];
+                            c.copies++;
+                            inner -= h;
+                        } else break;
                     }
                     a[inner] = temp;
                     c.copies++;
@@ -467,11 +476,11 @@ public class MainOrdenacao {
         //--------------------------------------------------------------
         public void mergeSort()
         {
-            String[] workSpace = new String[nElems];
+            long[] workSpace = new long[nElems];
             recMergeSort(workSpace, 0, nElems - 1);
         }
 
-        private void recMergeSort(String[] workSpace, int lowerBound, int upperBound)
+        private void recMergeSort(long[] workSpace, int lowerBound, int upperBound)
         {
             if(lowerBound == upperBound)
                 return;
@@ -484,7 +493,7 @@ public class MainOrdenacao {
             }
         }
 
-        private void merge(String[] workSpace, int lowPtr, int highPtr, int upperBound)
+        private void merge(long[] workSpace, int lowPtr, int highPtr, int upperBound)
         {
             int j = 0;
             int lowerBound = lowPtr;
@@ -493,7 +502,7 @@ public class MainOrdenacao {
             while(lowPtr <= mid && highPtr <= upperBound)
             {
                 c.comparisons++;
-                if(a[lowPtr].compareTo(a[highPtr]) < 0)
+                if(a[lowPtr] < a[highPtr])
                     workSpace[j++] = a[lowPtr++];
                 else
                     workSpace[j++] = a[highPtr++];
@@ -530,11 +539,11 @@ public class MainOrdenacao {
             int right = 2 * root + 2;
             if (left < size) {
                 c.comparisons++;
-                if (a[left].compareTo(a[largest]) > 0) largest = left;
+                if (a[left] > a[largest]) largest = left;
             }
             if (right < size) {
                 c.comparisons++;
-                if (a[right].compareTo(a[largest]) > 0) largest = right;
+                if (a[right] > a[largest]) largest = right;
             }
             if (largest != root) {
                 swap(root, largest);
@@ -555,18 +564,18 @@ public class MainOrdenacao {
         }
 
         private int partition(int lo, int hi) {
-            String pivot = a[lo];
+            long pivot = a[lo];
             int i = lo + 1;
             int j = hi;
             while (true) {
                 while (i <= hi) {
                     c.comparisons++;
-                    if (a[i].compareTo(pivot) > 0) break;
+                    if (a[i] > pivot) break;
                     i++;
                 }
                 while (j > lo) {
                     c.comparisons++;
-                    if (a[j].compareTo(pivot) < 0) break;
+                    if (a[j] < pivot) break;
                     j--;
                 }
                 if (i >= j) break;

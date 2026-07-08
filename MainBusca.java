@@ -48,7 +48,7 @@ public class MainBusca {
 
         log("Modo de experimento: " + MODE);
         log("Carregando dataset de '" + CSV_FILE + "'...");
-        List<String> dataset = loadIds(CSV_FILE);
+        List<Long> dataset = loadIds(CSV_FILE);
         log("Dataset carregado: " + dataset.size() + " registros.");
 
         init("seq.csv");
@@ -147,7 +147,7 @@ public class MainBusca {
 
                     Variants v = gerarVariantes(dataset, n, TEST_SIZE);
 
-                    List<String> data = structure.endsWith("random") ? v.random
+                    List<Long> data = structure.endsWith("random") ? v.random
                             : structure.endsWith("sorted") ? v.sorted
                             : v.reverse;
 
@@ -240,11 +240,11 @@ public class MainBusca {
     // ===================== GERAÇÃO DETERMINÍSTICA DE DADOS =====================
 
     static class Variants {
-        List<String> base;
-        List<String> sorted;
-        List<String> reverse;
-        List<String> random;
-        List<String> testSet;
+        List<Long> base;
+        List<Long> sorted;
+        List<Long> reverse;
+        List<Long> random;
+        List<Long> testSet;
     }
 
     /**
@@ -256,7 +256,7 @@ public class MainBusca {
      * mesmo n. Sem isso, a fase fine não reproduziria os mesmos dados que a
      * coarse produziu, e o "ponto de falha" refinado não seria confiável.
      */
-    static Variants gerarVariantes(List<String> dataset, int n, int testSize) {
+    static Variants gerarVariantes(List<Long> dataset, int n, int testSize) {
 
         Variants v = new Variants();
 
@@ -281,13 +281,13 @@ public class MainBusca {
     // ===================== SAFE RUN =====================
 
     static boolean safeRunBST(String file, String name, int n,
-                               List<String> data, List<String> tests,
+                               List<Long> data, List<Long> tests,
                                BufferedWriter report) throws IOException {
         return safeRunBST(file, name, n, data, tests, report, "COARSE");
     }
 
     static boolean safeRunBST(String file, String name, int n,
-                               List<String> data, List<String> tests,
+                               List<Long> data, List<Long> tests,
                                BufferedWriter report, String phase) throws IOException {
 
         try {
@@ -316,13 +316,13 @@ public class MainBusca {
     }
 
     static boolean safeRunAVL(String file, String name, int n,
-                               List<String> data, List<String> tests,
+                               List<Long> data, List<Long> tests,
                                BufferedWriter report) throws IOException {
         return safeRunAVL(file, name, n, data, tests, report, "COARSE");
     }
 
     static boolean safeRunAVL(String file, String name, int n,
-                               List<String> data, List<String> tests,
+                               List<Long> data, List<Long> tests,
                                BufferedWriter report, String phase) throws IOException {
 
         try {
@@ -350,17 +350,17 @@ public class MainBusca {
         }
     }
 
-    static AVL buildAVL(List<String> data) {
+    static AVL buildAVL(List<Long> data) {
         AVL t = new AVL();
-        for (String s : data) {
+        for (long s : data) {
             t.insert(s);
         }
         return t;
     }
 
-    static BST buildBST(List<String> data) {
+    static BST buildBST(List<Long> data) {
         BST t = new BST();
-        for (String s : data) {
+        for (long s : data) {
             t.insert(s);
         }
         return t;
@@ -368,9 +368,11 @@ public class MainBusca {
 
     // ===================== LOAD =====================
 
-    static List<String> loadIds(String file) throws IOException {
+    // le a primeira coluna como numero - se carregar como String a ordenacao
+    // vira lexicografica (1, 10, 100, 2, 20...) e sorted/reverse ficam errados
+    static List<Long> loadIds(String file) throws IOException {
 
-        List<String> ids = new ArrayList<>();
+        List<Long> ids = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             br.readLine();
@@ -378,7 +380,7 @@ public class MainBusca {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] v = line.split(",", -1);
-                if (v.length > 0) ids.add(v[0]);
+                if (v.length > 0 && !v[0].isEmpty()) ids.add(Long.parseLong(v[0]));
             }
         }
 
@@ -396,26 +398,26 @@ public class MainBusca {
     // captura, registra como failPoint e depois refina na fase fine.
 
     static class Node {
-        String key;
+        long key;
         Node left, right;
 
-        Node(String k) { key = k; }
+        Node(long k) { key = k; }
     }
 
     static class BST {
         Node root;
         long comparisons = 0;
 
-        void insert(String key) {
+        void insert(long key) {
             root = insert(root, key);
         }
 
-        Node insert(Node n, String key) {
+        Node insert(Node n, long key) {
             if (n == null) return new Node(key);
 
             comparisons++;
 
-            if (key.compareTo(n.key) < 0)
+            if (key < n.key)
                 n.left = insert(n.left, key);
             else
                 n.right = insert(n.right, key);
@@ -423,13 +425,13 @@ public class MainBusca {
             return n;
         }
 
-        boolean search(String key) {
+        boolean search(long key) {
             Node c = root;
 
             while (c != null) {
                 comparisons++;
 
-                int cmp = key.compareTo(c.key);
+                int cmp = Long.compare(key, c.key);
 
                 if (cmp == 0) return true;
                 else if (cmp < 0) c = c.left;
@@ -447,11 +449,11 @@ public class MainBusca {
         long comparisons = 0;
 
         static class AVLNode {
-            String key;
+            long key;
             int h;
             AVLNode l, r;
 
-            AVLNode(String k) {
+            AVLNode(long k) {
                 key = k;
                 h = 1;
             }
@@ -491,16 +493,16 @@ public class MainBusca {
             return y;
         }
 
-        void insert(String key) {
+        void insert(long key) {
             root = insert(root, key);
         }
 
-        AVLNode insert(AVLNode n, String key) {
+        AVLNode insert(AVLNode n, long key) {
             if (n == null) return new AVLNode(key);
 
             comparisons++;
 
-            if (key.compareTo(n.key) < 0)
+            if (key < n.key)
                 n.l = insert(n.l, key);
             else
                 n.r = insert(n.r, key);
@@ -509,18 +511,18 @@ public class MainBusca {
 
             int b = balance(n);
 
-            if (b > 1 && key.compareTo(n.l.key) < 0)
+            if (b > 1 && key < n.l.key)
                 return rotateRight(n);
 
-            if (b < -1 && key.compareTo(n.r.key) > 0)
+            if (b < -1 && key > n.r.key)
                 return rotateLeft(n);
 
-            if (b > 1 && key.compareTo(n.l.key) > 0) {
+            if (b > 1 && key > n.l.key) {
                 n.l = rotateLeft(n.l);
                 return rotateRight(n);
             }
 
-            if (b < -1 && key.compareTo(n.r.key) < 0) {
+            if (b < -1 && key < n.r.key) {
                 n.r = rotateRight(n.r);
                 return rotateLeft(n);
             }
@@ -528,13 +530,13 @@ public class MainBusca {
             return n;
         }
 
-        boolean search(String key) {
+        boolean search(long key) {
             AVLNode c = root;
 
             while (c != null) {
                 comparisons++;
 
-                int cmp = key.compareTo(c.key);
+                int cmp = Long.compare(key, c.key);
 
                 if (cmp == 0) return true;
                 else if (cmp < 0) c = c.l;
@@ -547,25 +549,25 @@ public class MainBusca {
 
     // ===================== TEST SET =====================
 
-    static List<String> pickTestSet(List<String> data, int size, Random r) {
-        List<String> copy = new ArrayList<>(data);
+    static List<Long> pickTestSet(List<Long> data, int size, Random r) {
+        List<Long> copy = new ArrayList<>(data);
         Collections.shuffle(copy, r);
         return new ArrayList<>(copy.subList(0, Math.min(size, copy.size())));
     }
 
     // ===================== BENCHMARK =====================
 
-    static Result benchmarkSequential(List<String> data, List<String> tests) {
+    static Result benchmarkSequential(List<Long> data, List<Long> tests) {
 
         long t = 0, c = 0;
 
-        for (String x : tests) {
+        for (long x : tests) {
             long s = System.nanoTime();
 
             int comp = 0;
-            for (String v : data) {
+            for (long v : data) {
                 comp++;
-                if (v.equals(x)) break;
+                if (v == x) break;
             }
 
             long e = System.nanoTime();
@@ -577,11 +579,11 @@ public class MainBusca {
         return new Result(t / tests.size(), c / tests.size());
     }
 
-    static Result benchmarkBinary(List<String> data, List<String> tests) {
+    static Result benchmarkBinary(List<Long> data, List<Long> tests) {
 
         long t = 0, c = 0;
 
-        for (String x : tests) {
+        for (long x : tests) {
 
             long s = System.nanoTime();
 
@@ -592,7 +594,7 @@ public class MainBusca {
                 int m = (l + r) / 2;
                 comp++;
 
-                int cmp = data.get(m).compareTo(x);
+                int cmp = Long.compare(data.get(m), x);
 
                 if (cmp == 0) break;
                 else if (cmp < 0) l = m + 1;
@@ -608,11 +610,11 @@ public class MainBusca {
         return new Result(t / tests.size(), c / tests.size());
     }
 
-    static Result benchmarkBST(BST t, List<String> tests) {
+    static Result benchmarkBST(BST t, List<Long> tests) {
 
         long time = 0, comp = 0;
 
-        for (String x : tests) {
+        for (long x : tests) {
 
             t.comparisons = 0;
 
@@ -627,11 +629,11 @@ public class MainBusca {
         return new Result(time / tests.size(), comp / tests.size());
     }
 
-    static Result benchmarkAVL(AVL t, List<String> tests) {
+    static Result benchmarkAVL(AVL t, List<Long> tests) {
 
         long time = 0, comp = 0;
 
-        for (String x : tests) {
+        for (long x : tests) {
 
             t.comparisons = 0;
 

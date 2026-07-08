@@ -13,7 +13,7 @@ public class GerarDistribuicoes {
     public static void main(String[] args) throws Exception {
         int n = args.length > 0 ? Integer.parseInt(args[0]) : 20;
 
-        List<String> dataset = loadIds(CSV_FILE);
+        List<Long> dataset = loadIds(CSV_FILE);
 
         if (n > dataset.size()) {
             System.out.println("n=" + n + " maior que o dataset (" + dataset.size() + "), usando " + dataset.size());
@@ -48,20 +48,20 @@ public class GerarDistribuicoes {
     }
 
     static class Datasets {
-        List<String> random;
-        List<String> ascending;
-        List<String> descending;
-        List<String> nearAscendingPct;
-        List<String> nearAscendingFixed;
-        List<String> nearDescendingPct;
-        List<String> nearDescendingFixed;
+        List<Long> random;
+        List<Long> ascending;
+        List<Long> descending;
+        List<Long> nearAscendingPct;
+        List<Long> nearAscendingFixed;
+        List<Long> nearDescendingPct;
+        List<Long> nearDescendingFixed;
     }
 
     // seed derivada de n pra garantir reproducibilidade
-    static Datasets gerarDistribuicoes(List<String> dataset, int n) {
+    static Datasets gerarDistribuicoes(List<Long> dataset, int n) {
         Datasets d = new Datasets();
 
-        List<String> base = new ArrayList<>(dataset.subList(0, n));
+        List<Long> base = new ArrayList<>(dataset.subList(0, n));
 
         d.ascending = new ArrayList<>(base);
         Collections.sort(d.ascending);
@@ -83,8 +83,8 @@ public class GerarDistribuicoes {
         return d;
     }
 
-    static List<String> perturb(List<String> sortedBase, int swaps, Random r) {
-        List<String> copy = new ArrayList<>(sortedBase);
+    static List<Long> perturb(List<Long> sortedBase, int swaps, Random r) {
+        List<Long> copy = new ArrayList<>(sortedBase);
         if (copy.size() < 2) return copy;
         for (int i = 0; i < swaps; i++) {
             int a = r.nextInt(copy.size());
@@ -94,14 +94,16 @@ public class GerarDistribuicoes {
         return copy;
     }
 
-    static List<String> loadIds(String file) throws IOException {
-        List<String> ids = new ArrayList<>();
+    // le a primeira coluna como numero - se ordenar como String a ordem vira
+    // lexicografica (1, 10, 100, 2, 20...) e crescente/decrescente ficam erradas
+    static List<Long> loadIds(String file) throws IOException {
+        List<Long> ids = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             br.readLine(); // pula cabeçalho
             String line;
             while ((line = br.readLine()) != null) {
                 String[] v = line.split(",", -1);
-                if (v.length > 0) ids.add(v[0]);
+                if (v.length > 0 && !v[0].isEmpty()) ids.add(Long.parseLong(v[0]));
             }
         }
         return ids;
