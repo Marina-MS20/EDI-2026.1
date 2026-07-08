@@ -1,0 +1,945 @@
+
+============================
+Arquivo: bubblesort_ascending.csv
+Metrica: comparisons
+Modelo: O(n²)
+Equacao: y = 5.000000e-01n² + -0.500011n + 0.299748
+Derivada em n=137430: 137429.50000755175
+R2 ajustado: 1.0
+RMSE: 0.24983823874777122
+
+============================
+Arquivo: bubblesort_ascending.csv
+Metrica: copies
+Modelo: O(1)
+Equacao: y = -0.000000
+Derivada em n=137430: 0
+R2 ajustado: 1.0
+RMSE: 0.0
+
+============================
+Arquivo: bubblesort_ascending.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -7.203479e-08n³ + 2.061329e-01n² + -587.683734n + 1135556.201676
+Derivada em n=137430: 51988.42999326787
+R2 ajustado: 0.9994024056466617
+RMSE: 14575417.678866686
+
+============================
+Arquivo: bubblesort_descending.csv
+Metrica: comparisons
+Modelo: O(n²)
+Equacao: y = 5.000000e-01n² + -0.500011n + 0.299748
+Derivada em n=137430: 137429.50000755175
+R2 ajustado: 1.0
+RMSE: 0.24983823874777122
+
+============================
+Arquivo: bubblesort_descending.csv
+Metrica: copies
+Modelo: O(n²)
+Equacao: y = 1.000000e+00n² + -1.000016n + 0.071846
+Derivada em n=137430: 274859.000011029
+R2 ajustado: 1.0
+RMSE: 0.2053381267645021
+
+============================
+Arquivo: bubblesort_descending.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -2.384000e-07n³ + 6.645629e-01n² + -1359.138031n + 2368192.831371
+Derivada em n=137430: 167794.6279142114
+R2 ajustado: 0.999924665596353
+RMSE: 16786268.964319814
+
+============================
+Arquivo: bubblesort_near_ascending_pct.csv
+Metrica: comparisons
+Modelo: O(n²)
+Equacao: y = 5.000000e-01n² + -0.500011n + 0.299748
+Derivada em n=137430: 137429.50000755175
+R2 ajustado: 1.0
+RMSE: 0.24983823874777122
+
+============================
+Arquivo: bubblesort_near_ascending_pct.csv
+Metrica: copies
+Modelo: O(n³)
+Equacao: y = 1.301788e-08n³ + 2.651930e-01n² + 55.501167n + -73827.258713
+Derivada em n=137430: 73684.04722122867
+R2 ajustado: 0.9999810287485994
+RMSE: 3602591.399531449
+
+============================
+Arquivo: bubblesort_near_ascending_pct.csv
+Metrica: time_ns
+Modelo: O(n²)
+Equacao: y = 8.571827e-01n² + -3520.446501n + 1532458.190105
+Derivada em n=137430: 232084.7935751902
+R2 ajustado: 0.9999711287460668
+RMSE: 13818105.881449694
+
+============================
+Arquivo: bubblesort_near_descending_pct.csv
+Metrica: comparisons
+Modelo: O(n²)
+Equacao: y = 5.000000e-01n² + -0.500011n + 0.299748
+Derivada em n=137430: 137429.50000755175
+R2 ajustado: 1.0
+RMSE: 0.24983823874777122
+
+============================
+Arquivo: bubblesort_near_descending_pct.csv
+Metrica: copies
+Modelo: O(n³)
+Equacao: y = 2.925816e-08n³ + 7.278943e-01n² + 177.466638n + -319586.720005
+Derivada em n=137430: 201904.29602949662
+R2 ajustado: 0.9999989671527373
+RMSE: 2305518.1579940566
+
+============================
+Arquivo: bubblesort_near_descending_pct.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -1.586070e-07n³ + 1.162643e+00n² + -6895.128906n + 3686276.283520
+Derivada em n=137430: 303682.0391600737
+R2 ajustado: 0.9999812781807705
+RMSE: 14518209.057273967
+
+============================
+Arquivo: bubblesort_random.csv
+Metrica: comparisons
+Modelo: O(n²)
+Equacao: y = 5.000000e-01n² + -0.500011n + 0.299748
+Derivada em n=137430: 137429.50000755175
+R2 ajustado: 1.0
+RMSE: 0.24983823874777122
+
+============================
+Arquivo: bubblesort_random.csv
+Metrica: copies
+Modelo: O(n³)
+Equacao: y = 2.749467e-08n³ + 4.967880e-01n² + 56.346910n + -54133.773890
+Derivada em n=137430: 138161.36311411497
+R2 ajustado: 0.999996764795883
+RMSE: 2786625.290734379
+
+============================
+Arquivo: bubblesort_random.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = 2.094289e-07n³ + 1.305356e+00n² + -2366.523709n + -498289.207264
+Derivada em n=137430: 368289.976730151
+R2 ajustado: 0.9999905361377497
+RMSE: 12467633.130188545
+
+============================
+Arquivo: heapsort_ascending.csv
+Metrica: comparisons
+Modelo: O(n log n)
+Equacao: y = 2.698304e+00nln(n) + -1823.852353
+Derivada em n=137430: 34.62158449380335
+R2 ajustado: 0.9999898288848532
+RMSE: 2866.5618591840544
+
+============================
+Arquivo: heapsort_ascending.csv
+Metrica: copies
+Modelo: O(n log n)
+Equacao: y = 2.861736e+00nln(n) + -480.334047
+Derivada em n=137430: 36.71856786119681
+R2 ajustado: 0.9999955618408881
+RMSE: 2008.2419759755342
+
+============================
+Arquivo: heapsort_ascending.csv
+Metrica: time_ns
+Modelo: O(n²)
+Equacao: y = 2.965020e-05n² + 55.679393n + -2929.037820
+Derivada em n=137430: 63.82904567633064
+R2 ajustado: 0.9981073665764537
+RMSE: 73568.25990614531
+
+============================
+Arquivo: heapsort_descending.csv
+Metrica: comparisons
+Modelo: O(n log n)
+Equacao: y = 2.548633e+00nln(n) + -3400.597097
+Derivada em n=137430: 32.70118108944132
+R2 ajustado: 0.9999639333425512
+RMSE: 5098.612299090234
+
+============================
+Arquivo: heapsort_descending.csv
+Metrica: copies
+Modelo: O(n log n)
+Equacao: y = 2.610501e+00nln(n) + -2974.945303
+Derivada em n=137430: 33.49500288484288
+R2 ajustado: 0.999968156463938
+RMSE: 4907.105196558041
+
+============================
+Arquivo: heapsort_descending.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -2.689561e-10n³ + 1.036770e-04n² + 55.146553n + 6679.210469
+Derivada em n=137430: 68.40388077998489
+R2 ajustado: 0.9984505878436538
+RMSE: 70753.9069536087
+
+============================
+Arquivo: heapsort_near_ascending_pct.csv
+Metrica: comparisons
+Modelo: O(n log n)
+Equacao: y = 2.659970e+00nln(n) + -2219.770069
+Derivada em n=137430: 34.129724016609536
+R2 ajustado: 0.999986779226716
+RMSE: 3221.750814676257
+
+============================
+Arquivo: heapsort_near_ascending_pct.csv
+Metrica: copies
+Modelo: O(n log n)
+Equacao: y = 2.800595e+00nln(n) + -860.932165
+Derivada em n=137430: 35.93407409084491
+R2 ajustado: 0.9999971161446775
+RMSE: 1584.2427728294258
+
+============================
+Arquivo: heapsort_near_ascending_pct.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -5.999107e-10n³ + 1.690682e-04n² + 74.699712n + -5534.501941
+Derivada em n=137430: 87.17824946152177
+R2 ajustado: 0.9980661489054987
+RMSE: 107427.39006609407
+
+============================
+Arquivo: heapsort_near_descending_pct.csv
+Metrica: comparisons
+Modelo: O(n log n)
+Equacao: y = 2.588090e+00nln(n) + -2901.928866
+Derivada em n=137430: 33.20745219376857
+R2 ajustado: 0.9999757954252652
+RMSE: 4241.479410324676
+
+============================
+Arquivo: heapsort_near_descending_pct.csv
+Metrica: copies
+Modelo: O(n log n)
+Equacao: y = 2.674783e+00nln(n) + -2056.542603
+Derivada em n=137430: 34.31979371625851
+R2 ajustado: 0.999988322139206
+RMSE: 3044.7856795096814
+
+============================
+Arquivo: heapsort_near_descending_pct.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -2.834208e-09n³ + 5.770521e-04n² + 63.902154n + 8783.606837
+Derivada em n=137430: 61.921613812403315
+R2 ajustado: 0.9840941764256852
+RMSE: 331470.38221196237
+
+============================
+Arquivo: heapsort_random.csv
+Metrica: comparisons
+Modelo: O(n log n)
+Equacao: y = 2.620861e+00nln(n) + -2522.748349
+Derivada em n=137430: 33.62792820863922
+R2 ajustado: 0.9999829717269172
+RMSE: 3602.6076413902047
+
+============================
+Arquivo: heapsort_random.csv
+Metrica: copies
+Modelo: O(n log n)
+Equacao: y = 2.733821e+00nln(n) + -1410.835075
+Derivada em n=137430: 35.077298961887976
+R2 ajustado: 0.9999950122796559
+RMSE: 2033.790343393127
+
+============================
+Arquivo: heapsort_random.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -3.119087e-09n³ + 6.677514e-04n² + 76.864524n + 10859.011978
+Derivada em n=137430: 83.67204054815707
+R2 ajustado: 0.9912586435895709
+RMSE: 296114.4667521217
+
+============================
+Arquivo: insertionsort_ascending.csv
+Metrica: comparisons
+Modelo: O(n)
+Equacao: y = 1.000000n + -1.000000
+Derivada em n=137430: 1.0
+R2 ajustado: 1.0
+RMSE: 0.0
+
+============================
+Arquivo: insertionsort_ascending.csv
+Metrica: copies
+Modelo: O(n)
+Equacao: y = 1.000000n + -1.000000
+Derivada em n=137430: 1.0
+R2 ajustado: 1.0
+RMSE: 0.0
+
+============================
+Arquivo: insertionsort_ascending.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = 5.227103e-11n³ + -1.107591e-05n² + 2.825691n + 293.894387
+Derivada em n=137430: 2.7430968642421414
+R2 ajustado: 0.9848858925670416
+RMSE: 8094.361170614862
+
+============================
+Arquivo: insertionsort_descending.csv
+Metrica: comparisons
+Modelo: O(n²)
+Equacao: y = 5.000000e-01n² + -0.500011n + 0.299748
+Derivada em n=137430: 137429.50000755175
+R2 ajustado: 1.0
+RMSE: 0.24983823874777122
+
+============================
+Arquivo: insertionsort_descending.csv
+Metrica: copies
+Modelo: O(n²)
+Equacao: y = 5.000000e-01n² + 0.499992n + -0.805387
+Derivada em n=137430: 137430.50000724065
+R2 ajustado: 1.0
+RMSE: 0.16143160571487813
+
+============================
+Arquivo: insertionsort_descending.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = 3.870942e-06n³ + -2.681029e-01n² + 15647.915635n + -25571594.456964
+Derivada em n=137430: 161288.65260628273
+R2 ajustado: 0.9755862322915528
+RMSE: 159909138.3111779
+
+============================
+Arquivo: insertionsort_near_ascending_pct.csv
+Metrica: comparisons
+Modelo: O(n³)
+Equacao: y = 6.508254e-09n³ + 1.325966e-01n² + 28.744357n + -36894.213127
+Derivada em n=137430: 36843.01552727609
+R2 ajustado: 0.9999810312245621
+RMSE: 1801295.939123747
+
+============================
+Arquivo: insertionsort_near_ascending_pct.csv
+Metrica: copies
+Modelo: O(n³)
+Equacao: y = 6.509069e-09n³ + 1.325965e-01n² + 28.751160n + -36918.181854
+Derivada em n=137430: 36843.02607612171
+R2 ajustado: 0.9999810312295971
+RMSE: 1801295.6997862894
+
+============================
+Arquivo: insertionsort_near_ascending_pct.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = 6.711536e-08n³ + 6.425480e-02n² + 125.761158n + -30604.413274
+Derivada em n=137430: 21589.658570789685
+R2 ajustado: 0.9985587612405921
+RMSE: 8611033.798907425
+
+============================
+Arquivo: insertionsort_near_descending_pct.csv
+Metrica: comparisons
+Modelo: O(n³)
+Equacao: y = 1.462928e-08n³ + 3.639471e-01n² + 89.734263n + -159804.793958
+Derivada em n=137430: 100953.1513939654
+R2 ajustado: 0.9999989672011296
+RMSE: 1152759.5598093476
+
+============================
+Arquivo: insertionsort_near_descending_pct.csv
+Metrica: copies
+Modelo: O(n³)
+Equacao: y = 1.462906e-08n³ + 3.639472e-01n² + 89.732366n + -159787.093712
+Derivada em n=137430: 100953.14879375359
+R2 ajustado: 0.9999989672019928
+RMSE: 1152759.0790175865
+
+============================
+Arquivo: insertionsort_near_descending_pct.csv
+Metrica: time_ns
+Modelo: O(n²)
+Equacao: y = 1.886138e-01n² + 1086.281253n + -1678946.780825
+Derivada em n=137430: 52928.66162341944
+R2 ajustado: 0.9982713191491005
+RMSE: 25653763.817156065
+
+============================
+Arquivo: insertionsort_random.csv
+Metrica: comparisons
+Modelo: O(n³)
+Equacao: y = 1.374716e-08n³ + 2.483940e-01n² + 29.171307n + -27058.845680
+Derivada em n=137430: 69081.68033422202
+R2 ajustado: 0.9999967650205063
+RMSE: 1393312.9077896462
+
+============================
+Arquivo: insertionsort_random.csv
+Metrica: copies
+Modelo: O(n³)
+Equacao: y = 1.374789e-08n³ + 2.483939e-01n² + 29.179351n + -27107.009919
+Derivada em n=137430: 69081.68739688981
+R2 ajustado: 0.9999967650217353
+RMSE: 1393312.6460637846
+
+============================
+Arquivo: insertionsort_random.csv
+Metrica: time_ns
+Modelo: O(n²)
+Equacao: y = 1.647162e-01n² + -1800.276861n + 4414023.993634
+Derivada em n=137430: 43473.614876573825
+R2 ajustado: 0.97013210519315
+RMSE: 81356455.87494488
+
+============================
+Arquivo: mergesort_ascending.csv
+Metrica: comparisons
+Modelo: O(n³)
+Equacao: y = -1.071392e-10n³ + 2.728338e-05n² + 6.899347n + -1240.245608
+Derivada em n=137430: 8.327838475232301
+R2 ajustado: 0.9999225725087572
+RMSE: 2138.24020182888
+
+============================
+Arquivo: mergesort_ascending.csv
+Metrica: copies
+Modelo: O(n log n)
+Equacao: y = 2.893778e+00nln(n) + 238.384533
+Derivada em n=137430: 37.12969510924019
+R2 ajustado: 0.9999967034290743
+RMSE: 1750.1739865443528
+
+============================
+Arquivo: mergesort_ascending.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -1.885323e-09n³ + 3.655367e-04n² + 18.696156n + 21873.375918
+Derivada em n=137430: 12.3432657242405
+R2 ajustado: 0.9908664677106057
+RMSE: 96038.59396947578
+
+============================
+Arquivo: mergesort_descending.csv
+Metrica: comparisons
+Modelo: O(n log n)
+Equacao: y = 7.098648e-01nln(n) + -227.994177
+Derivada em n=137430: 9.108183149562294
+R2 ajustado: 0.9999572443594591
+RMSE: 1546.1993604896359
+
+============================
+Arquivo: mergesort_descending.csv
+Metrica: copies
+Modelo: O(n log n)
+Equacao: y = 2.893778e+00nln(n) + 238.384533
+Derivada em n=137430: 37.12969510924019
+R2 ajustado: 0.9999967034290743
+RMSE: 1750.1739865443528
+
+============================
+Arquivo: mergesort_descending.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -2.348042e-09n³ + 4.752113e-04n² + 13.561524n + 30706.666322
+Derivada em n=137430: 11.13564760838121
+R2 ajustado: 0.9580998693319303
+RMSE: 214766.8439844382
+
+============================
+Arquivo: mergesort_near_ascending_pct.csv
+Metrica: comparisons
+Modelo: O(n log n)
+Equacao: y = 1.322462e+00nln(n) + -1077.927826
+Derivada em n=137430: 16.96834412461631
+R2 ajustado: 0.9999859954881755
+RMSE: 1648.5584826316758
+
+============================
+Arquivo: mergesort_near_ascending_pct.csv
+Metrica: copies
+Modelo: O(n log n)
+Equacao: y = 2.893778e+00nln(n) + 238.384533
+Derivada em n=137430: 37.12969510924019
+R2 ajustado: 0.9999967034290743
+RMSE: 1750.1739865443528
+
+============================
+Arquivo: mergesort_near_ascending_pct.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -1.160435e-09n³ + 2.710136e-04n² + 54.204021n + 11030.358628
+Derivada em n=137430: 62.94336696648677
+R2 ajustado: 0.9928312482875102
+RMSE: 167578.20642742555
+
+============================
+Arquivo: mergesort_near_descending_pct.csv
+Metrica: comparisons
+Modelo: O(n log n)
+Equacao: y = 1.314386e+00nln(n) + -1290.865688
+Derivada em n=137430: 16.864713013052494
+R2 ajustado: 0.9999802806484721
+RMSE: 1944.2736656726365
+
+============================
+Arquivo: mergesort_near_descending_pct.csv
+Metrica: copies
+Modelo: O(n log n)
+Equacao: y = 2.893778e+00nln(n) + 238.384533
+Derivada em n=137430: 37.12969510924019
+R2 ajustado: 0.9999967034290743
+RMSE: 1750.1739865443528
+
+============================
+Arquivo: mergesort_near_descending_pct.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -2.233479e-09n³ + 4.201886e-04n² + 52.435320n + 12299.250830
+Derivada em n=137430: 41.377144181166315
+R2 ajustado: 0.987825163992006
+RMSE: 223421.9583194243
+
+============================
+Arquivo: mergesort_random.csv
+Metrica: comparisons
+Modelo: O(n log n)
+Equacao: y = 1.334248e+00nln(n) + -1036.695368
+Derivada em n=137430: 17.119561303224437
+R2 ajustado: 0.9999888447138396
+RMSE: 1484.442195467434
+
+============================
+Arquivo: mergesort_random.csv
+Metrica: copies
+Modelo: O(n log n)
+Equacao: y = 2.893778e+00nln(n) + 238.384533
+Derivada em n=137430: 37.12969510924019
+R2 ajustado: 0.9999967034290743
+RMSE: 1750.1739865443528
+
+============================
+Arquivo: mergesort_random.csv
+Metrica: time_ns
+Modelo: O(n log n)
+Equacao: y = 8.337428e+00nln(n) + 24133.436055
+Derivada em n=137430: 106.97646004203969
+R2 ajustado: 0.9971412247674453
+RMSE: 148701.50647494546
+
+============================
+Arquivo: quicksort_ascending.csv
+Metrica: comparisons
+Modelo: O(n²)
+Equacao: y = 5.000000e-01n² + 0.500000n + -1.000000
+Derivada em n=15347: 15347.499999999993
+R2 ajustado: 1.0
+RMSE: 6.4195415286239134e-09
+
+============================
+Arquivo: quicksort_ascending.csv
+Metrica: copies
+Modelo: O(n)
+Equacao: y = 2.000000n + -2.000000
+Derivada em n=15347: 2.0
+R2 ajustado: 1.0
+RMSE: 1.2897616639834804e-14
+
+============================
+Arquivo: quicksort_ascending.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = 2.926954e-06n³ + 1.662475e-01n² + 311.257921n + -47855.241204
+Derivada em n=15347: 7482.217151791412
+R2 ajustado: 0.9889462000819782
+RMSE: 1036783.0787327251
+
+============================
+Arquivo: quicksort_descending.csv
+Metrica: comparisons
+Modelo: O(n²)
+Equacao: y = 5.000000e-01n² + 0.500000n + -1.000000
+Derivada em n=15347: 15347.499999999993
+R2 ajustado: 1.0
+RMSE: 6.4195415286239134e-09
+
+============================
+Arquivo: quicksort_descending.csv
+Metrica: copies
+Modelo: O(n)
+Equacao: y = 2.000000n + -2.000000
+Derivada em n=15347: 2.0
+R2 ajustado: 1.0
+RMSE: 1.2897616639834804e-14
+
+============================
+Arquivo: quicksort_descending.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -1.911788e-06n³ + 2.358572e-01n² + -59.039943n + 51220.226931
+Derivada em n=15347: 5829.507307512587
+R2 ajustado: 0.996790490230747
+RMSE: 501903.84293116326
+
+============================
+Arquivo: quicksort_near_ascending_pct.csv
+Metrica: comparisons
+Modelo: O(n³)
+Equacao: y = -4.614700e-10n³ + 1.501786e-04n² + 27.351502n + -4469.490912
+Derivada em n=137430: 42.48222683203577
+R2 ajustado: 0.9953216016457869
+RMSE: 73767.51088300071
+
+============================
+Arquivo: quicksort_near_ascending_pct.csv
+Metrica: copies
+Modelo: O(n³)
+Equacao: y = -3.816755e-11n³ + 1.043294e-05n² + 3.668850n + -550.994520
+Derivada em n=137430: 4.373835805631589
+R2 ajustado: 0.9999609841302307
+RMSE: 770.2791451586368
+
+============================
+Arquivo: quicksort_near_ascending_pct.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = 2.410271e-09n³ + -2.376354e-04n² + 57.424944n + -20383.680156
+Derivada em n=137430: 128.67687688090962
+R2 ajustado: 0.9867741123871037
+RMSE: 201029.06192632578
+
+============================
+Arquivo: quicksort_near_descending_pct.csv
+Metrica: comparisons
+Modelo: O(n²)
+Equacao: y = 5.210820e-05n² + 26.147512n + -6816.724543
+Derivada em n=137430: 40.469972795835844
+R2 ajustado: 0.9880860502316274
+RMSE: 99587.96724484049
+
+============================
+Arquivo: quicksort_near_descending_pct.csv
+Metrica: copies
+Modelo: O(n log n)
+Equacao: y = 6.457612e-01nln(n) + -369.997510
+Derivada em n=137430: 8.285677524384646
+R2 ajustado: 0.999624628026666
+RMSE: 4168.374891386272
+
+============================
+Arquivo: quicksort_near_descending_pct.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = 3.598070e-09n³ + -3.990163e-04n² + 75.872925n + -31179.017562
+Derivada em n=137430: 170.06957876087705
+R2 ajustado: 0.9919115266679466
+RMSE: 196783.17618162362
+
+============================
+Arquivo: quicksort_random.csv
+Metrica: comparisons
+Modelo: O(n log n)
+Equacao: y = 2.425216e+00nln(n) + -2933.336522
+Derivada em n=137430: 31.117630079143485
+R2 ajustado: 0.9994936720827964
+RMSE: 18182.690809310705
+
+============================
+Arquivo: quicksort_random.csv
+Metrica: copies
+Modelo: O(n log n)
+Equacao: y = 6.794294e-01nln(n) + 190.104482
+Derivada em n=137430: 8.717669917945381
+R2 ajustado: 0.9999635377109449
+RMSE: 1366.6524123310062
+
+============================
+Arquivo: quicksort_random.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -1.069372e-09n³ + 3.103226e-04n² + 58.030695n + 40537.561595
+Derivada em n=137430: 82.73427931202374
+R2 ajustado: 0.9948151493153857
+RMSE: 160857.59791811695
+
+============================
+Arquivo: selectionsort_ascending.csv
+Metrica: comparisons
+Modelo: O(n²)
+Equacao: y = 5.000000e-01n² + -0.500011n + 0.299748
+Derivada em n=137430: 137429.50000755175
+R2 ajustado: 1.0
+RMSE: 0.24983823874777122
+
+============================
+Arquivo: selectionsort_ascending.csv
+Metrica: copies
+Modelo: O(n)
+Equacao: y = 2.000000n + -2.000000
+Derivada em n=137430: 2.0
+R2 ajustado: 1.0
+RMSE: 9.464518393127508e-14
+
+============================
+Arquivo: selectionsort_ascending.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = 9.286508e-08n³ + 1.850014e-01n² + 273.196229n + -255028.816028
+Derivada em n=137430: 56384.52139162058
+R2 ajustado: 0.9998493977070663
+RMSE: 7532345.926322512
+
+============================
+Arquivo: selectionsort_descending.csv
+Metrica: comparisons
+Modelo: O(n²)
+Equacao: y = 5.000000e-01n² + -0.500011n + 0.299748
+Derivada em n=137430: 137429.50000755175
+R2 ajustado: 1.0
+RMSE: 0.24983823874777122
+
+============================
+Arquivo: selectionsort_descending.csv
+Metrica: copies
+Modelo: O(n)
+Equacao: y = 2.000000n + -2.000000
+Derivada em n=137430: 2.0
+R2 ajustado: 1.0
+RMSE: 9.464518393127508e-14
+
+============================
+Arquivo: selectionsort_descending.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = 6.056289e-08n³ + 1.992378e-01n² + 198.404630n + -42115.734845
+Derivada em n=137430: 58392.47228286982
+R2 ajustado: 0.9997739838474644
+RMSE: 9683739.151540717
+
+============================
+Arquivo: selectionsort_near_ascending_pct.csv
+Metrica: comparisons
+Modelo: O(n²)
+Equacao: y = 5.000000e-01n² + -0.500011n + 0.299748
+Derivada em n=137430: 137429.50000755175
+R2 ajustado: 1.0
+RMSE: 0.24983823874777122
+
+============================
+Arquivo: selectionsort_near_ascending_pct.csv
+Metrica: copies
+Modelo: O(n)
+Equacao: y = 2.000000n + -2.000000
+Derivada em n=137430: 2.0
+R2 ajustado: 1.0
+RMSE: 9.464518393127508e-14
+
+============================
+Arquivo: selectionsort_near_ascending_pct.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = 5.459649e-08n³ + 1.892947e-01n² + 292.359227n + -456560.094547
+Derivada em n=137430: 55415.38484052807
+R2 ajustado: 0.9995368369779092
+RMSE: 13209569.246331187
+
+============================
+Arquivo: selectionsort_near_descending_pct.csv
+Metrica: comparisons
+Modelo: O(n²)
+Equacao: y = 5.000000e-01n² + -0.500011n + 0.299748
+Derivada em n=137430: 137429.50000755175
+R2 ajustado: 1.0
+RMSE: 0.24983823874777122
+
+============================
+Arquivo: selectionsort_near_descending_pct.csv
+Metrica: copies
+Modelo: O(n)
+Equacao: y = 2.000000n + -2.000000
+Derivada em n=137430: 2.0
+R2 ajustado: 1.0
+RMSE: 9.464518393127508e-14
+
+============================
+Arquivo: selectionsort_near_descending_pct.csv
+Metrica: time_ns
+Modelo: O(n²)
+Equacao: y = 2.016596e-01n² + -298.336540n + 657721.799770
+Derivada em n=137430: 55129.8152890379
+R2 ajustado: 0.9996625995667976
+RMSE: 11378597.531593004
+
+============================
+Arquivo: selectionsort_random.csv
+Metrica: comparisons
+Modelo: O(n²)
+Equacao: y = 5.000000e-01n² + -0.500011n + 0.299748
+Derivada em n=137430: 137429.50000755175
+R2 ajustado: 1.0
+RMSE: 0.24983823874777122
+
+============================
+Arquivo: selectionsort_random.csv
+Metrica: copies
+Modelo: O(n)
+Equacao: y = 2.000000n + -2.000000
+Derivada em n=137430: 2.0
+R2 ajustado: 1.0
+RMSE: 9.464518393127508e-14
+
+============================
+Arquivo: selectionsort_random.csv
+Metrica: time_ns
+Modelo: O(n²)
+Equacao: y = 1.966158e-01n² + 176.881020n + -243382.845324
+Derivada em n=137430: 54218.709196197095
+R2 ajustado: 0.9997515463754975
+RMSE: 9720040.03065815
+
+============================
+Arquivo: shellsort_ascending.csv
+Metrica: comparisons
+Modelo: O(n log n)
+Equacao: y = 8.430589e-01nln(n) + -714.570436
+Derivada em n=137430: 10.817179468906629
+R2 ajustado: 0.9999605062845056
+RMSE: 1764.8766761267614
+
+============================
+Arquivo: shellsort_ascending.csv
+Metrica: copies
+Modelo: O(n log n)
+Equacao: y = 8.430589e-01nln(n) + -714.570436
+Derivada em n=137430: 10.817179468906629
+R2 ajustado: 0.9999605062845056
+RMSE: 1764.8766761267614
+
+============================
+Arquivo: shellsort_ascending.csv
+Metrica: time_ns
+Modelo: O(n log n)
+Equacao: y = 1.510012e+00nln(n) + 3609.314096
+Derivada em n=137430: 19.374762450943297
+R2 ajustado: 0.9979116084741603
+RMSE: 23009.922162973282
+
+============================
+Arquivo: shellsort_descending.csv
+Metrica: comparisons
+Modelo: O(n³)
+Equacao: y = 7.505326e-11n³ + 5.987543e-06n² + 13.652465n + -5016.027405
+Derivada em n=137430: 19.55079446412872
+R2 ajustado: 0.9971120185150507
+RMSE: 23296.492233818655
+
+============================
+Arquivo: shellsort_descending.csv
+Metrica: copies
+Modelo: O(n log n)
+Equacao: y = 1.366280e+00nln(n) + 913.458588
+Derivada em n=137430: 17.53056135942869
+R2 ajustado: 0.9964929487675702
+RMSE: 26998.672272708332
+
+============================
+Arquivo: shellsort_descending.csv
+Metrica: time_ns
+Modelo: O(n log n)
+Equacao: y = 2.521495e+00nln(n) + 13394.619808
+Derivada em n=137430: 32.35297439790713
+R2 ajustado: 0.9906834054734542
+RMSE: 81444.63037630236
+
+============================
+Arquivo: shellsort_near_ascending_pct.csv
+Metrica: comparisons
+Modelo: O(n³)
+Equacao: y = -6.271358e-10n³ + 2.073496e-04n² + 22.286817n + -7679.031406
+Derivada em n=137430: 43.74477294605606
+R2 ajustado: 0.9983527467339445
+RMSE: 42546.11342483204
+
+============================
+Arquivo: shellsort_near_ascending_pct.csv
+Metrica: copies
+Modelo: O(n³)
+Equacao: y = -6.255779e-10n³ + 2.069804e-04n² + 22.523012n + -7707.638084
+Derivada em n=137430: 43.967764805368944
+R2 ajustado: 0.9983728761711523
+RMSE: 42532.973385450634
+
+============================
+Arquivo: shellsort_near_ascending_pct.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -3.274885e-09n³ + 7.204154e-04n² + 71.695592n + -1665.970482
+Derivada em n=137430: 84.15067727549052
+R2 ajustado: 0.9972019110695587
+RMSE: 164791.37171905037
+
+============================
+Arquivo: shellsort_near_descending_pct.csv
+Metrica: comparisons
+Modelo: O(n³)
+Equacao: y = -7.325321e-10n³ + 2.313463e-04n² + 21.381370n + -4891.583746
+Derivada em n=137430: 43.46321303204489
+R2 ajustado: 0.9978903943997186
+RMSE: 48660.840398189976
+
+============================
+Arquivo: shellsort_near_descending_pct.csv
+Metrica: copies
+Modelo: O(n³)
+Equacao: y = -7.393466e-10n³ + 2.315214e-04n² + 21.976647n + -4974.739086
+Derivada em n=137430: 43.720485814341814
+R2 ajustado: 0.9980049092101554
+RMSE: 47998.110083380256
+
+============================
+Arquivo: shellsort_near_descending_pct.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -1.185708e-09n³ + 3.952618e-04n² + 77.759912n + -14986.640801
+Derivada em n=137430: 119.21814316654374
+R2 ajustado: 0.9990295610252772
+RMSE: 93704.8515043294
+
+============================
+Arquivo: shellsort_random.csv
+Metrica: comparisons
+Modelo: O(n³)
+Equacao: y = -5.728949e-10n³ + 2.026959e-04n² + 24.669981n + -9638.563947
+Derivada em n=137430: 47.92217673265417
+R2 ajustado: 0.9995856507098655
+RMSE: 22794.91720521165
+
+============================
+Arquivo: shellsort_random.csv
+Metrica: copies
+Modelo: O(n³)
+Equacao: y = -5.704065e-10n³ + 2.020474e-04n² + 25.138002n + -9697.444719
+Derivada em n=137430: 48.352942440919065
+R2 ajustado: 0.999587482616416
+RMSE: 22992.8184774814
+
+============================
+Arquivo: shellsort_random.csv
+Metrica: time_ns
+Modelo: O(n³)
+Equacao: y = -1.850112e-09n³ + 5.125086e-04n² + 81.310048n + -10707.122619
+Derivada em n=137430: 117.3489030667663
+R2 ajustado: 0.9983262340704427
+RMSE: 132550.58620829997
