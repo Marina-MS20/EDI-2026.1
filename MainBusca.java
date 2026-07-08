@@ -30,9 +30,15 @@ public class MainBusca {
     private static final double GROWTH_FACTOR = 1.15;
     private static final double GROWTH_FINE_FACTOR = 1.02;
 
+    // teto separado para a AVL: o balanco() do professor recalcula as alturas
+    // percorrendo as subárvores inteiras a cada inserção (O(n) por inserção,
+    // O(n²) no total) — medido ~28s para construir com n=100.000. Acima disso
+    // a construção fica inviável para o benchmark.
+    private static final int AVL_MAX_N = 100_000;
+
     static Map<String, BufferedWriter> writers = new HashMap<>();
 
-    static Set<String> activeBST = new HashSet<>();
+    static Set<String> activeABB = new HashSet<>();
     static Set<String> activeAVL = new HashSet<>();
 
     // n onde cada estrutura estourou na fase coarse (o "ponto de falha" bruto)
@@ -54,17 +60,17 @@ public class MainBusca {
         init("seq.csv");
         init("bin.csv");
 
-        init("bst_random.csv");
-        init("bst_sorted.csv");
-        init("bst_reverse.csv");
+        init("abb_random.csv");
+        init("abb_sorted.csv");
+        init("abb_reverse.csv");
 
         init("avl_random.csv");
         init("avl_sorted.csv");
         init("avl_reverse.csv");
 
-        activeBST.add("bst_random");
-        activeBST.add("bst_sorted");
-        activeBST.add("bst_reverse");
+        activeABB.add("abb_random");
+        activeABB.add("abb_sorted");
+        activeABB.add("abb_reverse");
 
         activeAVL.add("avl_random");
         activeAVL.add("avl_sorted");
@@ -93,23 +99,26 @@ public class MainBusca {
                 write("seq.csv", n, benchmarkSequential(v.base, v.testSet));
                 write("bin.csv", n, benchmarkBinary(v.sorted, v.testSet));
 
-                if (activeBST.contains("bst_random"))
-                    safeRunBST("bst_random.csv", "bst_random", n, v.random, v.testSet, report);
+                if (activeABB.contains("abb_random"))
+                    safeRunABB("abb_random.csv", "abb_random", n, v.random, v.testSet, report);
 
-                if (activeBST.contains("bst_sorted"))
-                    safeRunBST("bst_sorted.csv", "bst_sorted", n, v.sorted, v.testSet, report);
+                if (activeABB.contains("abb_sorted"))
+                    safeRunABB("abb_sorted.csv", "abb_sorted", n, v.sorted, v.testSet, report);
 
-                if (activeBST.contains("bst_reverse"))
-                    safeRunBST("bst_reverse.csv", "bst_reverse", n, v.reverse, v.testSet, report);
+                if (activeABB.contains("abb_reverse"))
+                    safeRunABB("abb_reverse.csv", "abb_reverse", n, v.reverse, v.testSet, report);
 
-                if (activeAVL.contains("avl_random"))
-                    safeRunAVL("avl_random.csv", "avl_random", n, v.random, v.testSet, report);
+                // AVL tem teto próprio: construção O(n²) (ver AVL_MAX_N)
+                if (n <= AVL_MAX_N) {
+                    if (activeAVL.contains("avl_random"))
+                        safeRunAVL("avl_random.csv", "avl_random", n, v.random, v.testSet, report);
 
-                if (activeAVL.contains("avl_sorted"))
-                    safeRunAVL("avl_sorted.csv", "avl_sorted", n, v.sorted, v.testSet, report);
+                    if (activeAVL.contains("avl_sorted"))
+                        safeRunAVL("avl_sorted.csv", "avl_sorted", n, v.sorted, v.testSet, report);
 
-                if (activeAVL.contains("avl_reverse"))
-                    safeRunAVL("avl_reverse.csv", "avl_reverse", n, v.reverse, v.testSet, report);
+                    if (activeAVL.contains("avl_reverse"))
+                        safeRunAVL("avl_reverse.csv", "avl_reverse", n, v.reverse, v.testSet, report);
+                }
             }
 
             log(String.format("[COARSE 100.0%%] fase coarse concluída."));
@@ -153,8 +162,8 @@ public class MainBusca {
 
                     boolean estourouDeNovo;
 
-                    if (structure.startsWith("bst")) {
-                        estourouDeNovo = !safeRunBST(structure + ".csv", structure, n, data, v.testSet, report, "FINE");
+                    if (structure.startsWith("abb")) {
+                        estourouDeNovo = !safeRunABB(structure + ".csv", structure, n, data, v.testSet, report, "FINE");
                     } else {
                         estourouDeNovo = !safeRunAVL(structure + ".csv", structure, n, data, v.testSet, report, "FINE");
                     }
@@ -280,19 +289,19 @@ public class MainBusca {
 
     // ===================== SAFE RUN =====================
 
-    static boolean safeRunBST(String file, String name, int n,
+    static boolean safeRunABB(String file, String name, int n,
                                List<Long> data, List<Long> tests,
                                BufferedWriter report) throws IOException {
-        return safeRunBST(file, name, n, data, tests, report, "COARSE");
+        return safeRunABB(file, name, n, data, tests, report, "COARSE");
     }
 
-    static boolean safeRunBST(String file, String name, int n,
+    static boolean safeRunABB(String file, String name, int n,
                                List<Long> data, List<Long> tests,
                                BufferedWriter report, String phase) throws IOException {
 
         try {
-            BST t = buildBST(data);
-            Result r = benchmarkBST(t, tests);
+            TArvore t = buildABB(data);
+            Result r = benchmarkABB(t, tests);
             write(file, n, r);
 
             if (phase.equals("COARSE")) lastSuccess.put(name, n);
@@ -303,12 +312,12 @@ public class MainBusca {
 
             if (phase.equals("COARSE")) {
                 failPoint.put(name, n);
-                activeBST.remove(name);
+                activeABB.remove(name);
             }
 
             writeFail(file, n);
 
-            report.write("BST," + phase + "," + n + "," + e.getClass().getSimpleName());
+            report.write("ABB," + phase + "," + n + "," + e.getClass().getSimpleName());
             report.newLine();
 
             return false;
@@ -326,7 +335,7 @@ public class MainBusca {
                                BufferedWriter report, String phase) throws IOException {
 
         try {
-            AVL t = buildAVL(data);
+            TArvoreAVL t = buildAVL(data);
             Result r = benchmarkAVL(t, tests);
             write(file, n, r);
 
@@ -350,18 +359,18 @@ public class MainBusca {
         }
     }
 
-    static AVL buildAVL(List<Long> data) {
-        AVL t = new AVL();
+    static TArvoreAVL buildAVL(List<Long> data) {
+        TArvoreAVL t = new TArvoreAVL();
         for (long s : data) {
-            t.insert(s);
+            t.insere(s);
         }
         return t;
     }
 
-    static BST buildBST(List<Long> data) {
-        BST t = new BST();
+    static TArvore buildABB(List<Long> data) {
+        TArvore t = new TArvore();
         for (long s : data) {
-            t.insert(s);
+            t.insere(s);
         }
         return t;
     }
@@ -389,161 +398,218 @@ public class MainBusca {
 
     // ===================== ESTRUTURAS =====================
     //
-    // BST e AVL usam o método de inserção REAL (recursivo). É proposital:
-    // numa entrada ordenada ou em ordem inversa, a BST sem balanceamento
-    // degenera numa lista ligada com profundidade O(n), e a inserção
-    // recursiva consome uma frame de pilha por nível — para n grande o
-    // suficiente, isso estoura a pilha (StackOverflowError) de verdade.
-    // É exatamente esse estouro que a camada de experimento (safeRunBST/AVL)
-    // captura, registra como failPoint e depois refina na fase fine.
+    // TArvore (ABB) e TArvoreAVL seguem a implementação por apontadores do
+    // prof. Alcides (NA03/NA04): nodos com esq/dir/pai, insere recursivo com
+    // parâmetro pai, pesquisa recursiva, e na AVL o rebalanceamento AVL(p)
+    // subindo pelos pais com balanco/balpreOrdem e rotacao_esquerda/direita.
+    // Adaptações do benchmark: chave long direto no nodo (sem TInfo/nome),
+    // contador de comparações e sem prints por inserção/rotação.
+    //
+    // A inserção recursiva é proposital: numa entrada ordenada ou em ordem
+    // inversa, a ABB sem balanceamento degenera numa lista ligada com
+    // profundidade O(n), e a recursão consome uma frame de pilha por nível —
+    // para n grande o suficiente, isso estoura a pilha (StackOverflowError)
+    // de verdade. É esse estouro que safeRunABB/AVL captura e registra.
 
-    static class Node {
-        long key;
-        Node left, right;
+    static class TArvore {
 
-        Node(long k) { key = k; }
-    }
+        static class TNodo {
+            TNodo esq;
+            long chave;
+            TNodo dir;
+            TNodo pai;
 
-    static class BST {
-        Node root;
+            TNodo(long chave, TNodo pai) {
+                this.chave = chave;
+                this.esq = null;
+                this.dir = null;
+                this.pai = pai;
+            }
+        }
+
+        public TNodo T;
         long comparisons = 0;
 
-        void insert(long key) {
-            root = insert(root, key);
+        public void insere(long chave) {
+            T = insere(T, chave, null);
         }
 
-        Node insert(Node n, long key) {
-            if (n == null) return new Node(key);
-
-            comparisons++;
-
-            if (key < n.key)
-                n.left = insert(n.left, key);
-            else
-                n.right = insert(n.right, key);
-
-            return n;
-        }
-
-        boolean search(long key) {
-            Node c = root;
-
-            while (c != null) {
+        public TNodo insere(TNodo T, long chave, TNodo pai) {
+            if (T == null) {
+                T = new TNodo(chave, pai);
+            } else {
+                pai = T;
                 comparisons++;
-
-                int cmp = Long.compare(key, c.key);
-
-                if (cmp == 0) return true;
-                else if (cmp < 0) c = c.left;
-                else c = c.right;
+                if (chave < T.chave)
+                    T.esq = insere(T.esq, chave, pai);
+                else if (chave > T.chave)
+                    T.dir = insere(T.dir, chave, pai);
             }
+            return T;
+        }
 
-            return false;
+        public TNodo pesquisa(long chave) {
+            return pesquisa(T, chave);
+        }
+
+        public TNodo pesquisa(TNodo T, long chave) {
+            if (T == null) {
+                return T;
+            } else {
+                comparisons++;
+                if (chave == T.chave)
+                    return T;
+                else
+                    if (chave < T.chave)
+                        T = pesquisa(T.esq, chave);
+                    else
+                        T = pesquisa(T.dir, chave);
+            }
+            return T;
         }
     }
 
-    // ===================== AVL REAL =====================
+    // ===================== AVL =====================
 
-    static class AVL {
-        AVLNode root;
+    static class TArvoreAVL {
+
+        static class TNodo {
+            TNodo esq;
+            long chave;
+            TNodo dir;
+            TNodo pai;
+            int bal = 0;
+            int hesq = 0;
+            int hdir = 0;
+
+            TNodo(long chave, TNodo pai) {
+                this.chave = chave;
+                this.esq = null;
+                this.dir = null;
+                this.pai = pai;
+            }
+        }
+
+        public TNodo T;
+        private int h;
+        private TNodo p;
         long comparisons = 0;
 
-        static class AVLNode {
-            long key;
-            int h;
-            AVLNode l, r;
-
-            AVLNode(long k) {
-                key = k;
-                h = 1;
-            }
+        public void insere(long chave) {
+            T = insere(T, chave, null);
+            AVL(p);
         }
 
-        int h(AVLNode n) {
-            return n == null ? 0 : n.h;
-        }
-
-        int balance(AVLNode n) {
-            return n == null ? 0 : h(n.l) - h(n.r);
-        }
-
-        AVLNode rotateRight(AVLNode y) {
-            AVLNode x = y.l;
-            AVLNode t = x.r;
-
-            x.r = y;
-            y.l = t;
-
-            y.h = Math.max(h(y.l), h(y.r)) + 1;
-            x.h = Math.max(h(x.l), h(x.r)) + 1;
-
-            return x;
-        }
-
-        AVLNode rotateLeft(AVLNode x) {
-            AVLNode y = x.r;
-            AVLNode t = y.l;
-
-            y.l = x;
-            x.r = t;
-
-            x.h = Math.max(h(x.l), h(x.r)) + 1;
-            y.h = Math.max(h(y.l), h(y.r)) + 1;
-
-            return y;
-        }
-
-        void insert(long key) {
-            root = insert(root, key);
-        }
-
-        AVLNode insert(AVLNode n, long key) {
-            if (n == null) return new AVLNode(key);
-
-            comparisons++;
-
-            if (key < n.key)
-                n.l = insert(n.l, key);
-            else
-                n.r = insert(n.r, key);
-
-            n.h = Math.max(h(n.l), h(n.r)) + 1;
-
-            int b = balance(n);
-
-            if (b > 1 && key < n.l.key)
-                return rotateRight(n);
-
-            if (b < -1 && key > n.r.key)
-                return rotateLeft(n);
-
-            if (b > 1 && key > n.l.key) {
-                n.l = rotateLeft(n.l);
-                return rotateRight(n);
-            }
-
-            if (b < -1 && key < n.r.key) {
-                n.r = rotateRight(n.r);
-                return rotateLeft(n);
-            }
-
-            return n;
-        }
-
-        boolean search(long key) {
-            AVLNode c = root;
-
-            while (c != null) {
+        public TNodo insere(TNodo T, long chave, TNodo pai) {
+            if (T == null) {
+                T = new TNodo(chave, pai);
+                this.p = T;
+            } else {
+                pai = T;
                 comparisons++;
-
-                int cmp = Long.compare(key, c.key);
-
-                if (cmp == 0) return true;
-                else if (cmp < 0) c = c.l;
-                else c = c.r;
+                if (chave < T.chave)
+                    T.esq = insere(T.esq, chave, pai);
+                else if (chave > T.chave)
+                    T.dir = insere(T.dir, chave, pai);
             }
+            return T;
+        }
 
-            return false;
+        public void AVL(TNodo T) {
+            if (T != null) {
+                T.bal = balanco(T);
+                if (T.bal < 2) {
+                    AVL(T.pai);
+                } else {
+
+                    if (T.hesq >= T.hdir)
+                        if (T.esq.hesq >= T.esq.hdir) {
+                            rotacao_direita(T);
+                        }
+                        else {
+                            rotacao_esquerda(T.esq);
+                            rotacao_direita(T);
+                        }
+
+                    if (T.hdir >= T.hesq)
+                        if (T.dir.hdir >= T.dir.hesq) {
+                            rotacao_esquerda(T);
+                        }
+                        else {
+                            rotacao_direita(T.dir);
+                            rotacao_esquerda(T);
+                        }
+                }
+            }
+        }
+
+        public int balanco(TNodo T) {
+            h = 0; balpreOrdem(T.esq, 0); T.hesq = h;
+            h = 0; balpreOrdem(T.dir, 0); T.hdir = h;
+            return Math.abs(T.hesq - T.hdir);
+        }
+
+        public void balpreOrdem(TNodo T, int v) {
+            if (T != null) {
+                v++;
+                balpreOrdem(T.esq, v);
+                balpreOrdem(T.dir, v);
+            } else
+                if (v > h) h = v;
+        }
+
+        public void rotacao_esquerda(TNodo T) {
+            TNodo apu = T.dir;
+            T.dir = apu.esq;
+            if (apu.esq != null) apu.esq.pai = T;
+            apu.pai = T.pai;
+            apu.esq = T; T.pai = apu;
+            T.bal = 0;
+            if (apu.pai == null)
+                this.T = apu;
+            else {
+                if (apu.chave < apu.pai.chave)
+                    apu.pai.esq = apu;
+                else
+                    apu.pai.dir = apu;
+            }
+        }
+
+        public void rotacao_direita(TNodo T) {
+            TNodo apu = T.esq;
+            T.esq = apu.dir;
+            if (apu.dir != null) apu.dir.pai = T;
+            apu.pai = T.pai;
+            apu.dir = T; T.pai = apu;
+            T.bal = 0;
+            if (apu.pai == null)
+                this.T = apu;
+            else {
+                if (apu.chave < apu.pai.chave)
+                    apu.pai.esq = apu;
+                else
+                    apu.pai.dir = apu;
+            }
+        }
+
+        public TNodo pesquisa(long chave) {
+            return pesquisa(T, chave);
+        }
+
+        public TNodo pesquisa(TNodo T, long chave) {
+            if (T == null) {
+                return T;
+            } else {
+                comparisons++;
+                if (chave == T.chave)
+                    return T;
+                else
+                    if (chave < T.chave)
+                        T = pesquisa(T.esq, chave);
+                    else
+                        T = pesquisa(T.dir, chave);
+            }
+            return T;
         }
     }
 
@@ -610,7 +676,7 @@ public class MainBusca {
         return new Result(t / tests.size(), c / tests.size());
     }
 
-    static Result benchmarkBST(BST t, List<Long> tests) {
+    static Result benchmarkABB(TArvore t, List<Long> tests) {
 
         long time = 0, comp = 0;
 
@@ -619,7 +685,7 @@ public class MainBusca {
             t.comparisons = 0;
 
             long s = System.nanoTime();
-            t.search(x);
+            t.pesquisa(x);
             long e = System.nanoTime();
 
             time += (e - s);
@@ -629,7 +695,7 @@ public class MainBusca {
         return new Result(time / tests.size(), comp / tests.size());
     }
 
-    static Result benchmarkAVL(AVL t, List<Long> tests) {
+    static Result benchmarkAVL(TArvoreAVL t, List<Long> tests) {
 
         long time = 0, comp = 0;
 
@@ -638,7 +704,7 @@ public class MainBusca {
             t.comparisons = 0;
 
             long s = System.nanoTime();
-            t.search(x);
+            t.pesquisa(x);
             long e = System.nanoTime();
 
             time += (e - s);
