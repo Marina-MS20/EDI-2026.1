@@ -1,11 +1,22 @@
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
 from pathlib import Path
 
-def scientific_name(value):
-    exp = int(f"{value:.0e}".split("e")[1])
-    return f"10a{exp}"
+def human_format(value, _pos=None):
+    """Formata valores dos eixos em português: mil, mi (milhão), bi (bilhão).
+    Ex.: 10_000_000_000 -> "10 bi", 1_500_000 -> "1,5 mi", 500 -> "500"."""
+    if value == 0:
+        return "0"
+    for div, suffix in ((1e9, " bi"), (1e6, " mi"), (1e3, " mil")):
+        if abs(value) >= div:
+            txt = f"{value / div:.1f}".rstrip("0").rstrip(".")
+            return txt.replace(".", ",") + suffix
+    txt = f"{value:.1f}".rstrip("0").rstrip(".")
+    return txt.replace(".", ",")
+
+HUMAN_FORMATTER = FuncFormatter(human_format)
 
 # ============================================================
 # CONFIGURAÇÃO
@@ -13,12 +24,8 @@ def scientific_name(value):
 
 INPUT_DIR = "output_ordenacao"
 
-# Escalas Y fixas — cada uma gera na sua própria pasta
-# (ex.: 1e6 -> "graficos_10a6", 1e7 -> "graficos_10a7", 1e10 -> "graficos_10a10")
-SCALES = [1e6, 1e7, 1e10]
-
-# Também gera a versão com escala automática global (ajustada ao máximo
-# de todos os algoritmos) na pasta "graficos_geral"
+# Versão com escala automática global (ajustada ao máximo de todos os
+# algoritmos, mesma escala em todos os gráficos) na pasta "graficos_geral"
 GENERATE_GERAL = True
 GERAL_OUTPUT_DIR = "graficos_geral"
 
@@ -167,7 +174,6 @@ def create_figure(title):
 def setup_axis(ax, ylabel, column, y_max_scale):
     """Configura rótulos e escala do eixo.
 
-    y_max_scale número   -> escala Y fixa (mesma para os 3 subplots).
     y_max_scale "global" -> escala automática (máximo global + 10%).
     y_max_scale None     -> escala normal (cada gráfico ajustado aos
                             próprios dados, formatação padrão).
@@ -176,23 +182,17 @@ def setup_axis(ax, ylabel, column, y_max_scale):
     ax.set_ylabel(ylabel)
     ax.grid(True, alpha=0.3)
 
+    # Eixo Y legível: mil / mi / bi em vez de notação científica (1e10)
+    ax.yaxis.set_major_formatter(HUMAN_FORMATTER)
+
     if USE_LOG_SCALE:
         ax.set_yscale("log")
-        return
-
-    if y_max_scale is None:
-        # Escala normal: deixa o matplotlib ajustar aos dados plotados
         return
 
     if y_max_scale == "global":
         maximum = GLOBAL_MAX[column]
         if maximum > 0:
             ax.set_ylim(0, maximum * 1.1)  # 10% de margem
-    else:
-        ax.set_ylim(0, y_max_scale)
-
-    # Formata eixo Y em notação científica
-    ax.ticklabel_format(style='scientific', axis='y', scilimits=(0, 0))
 
 # ============================================================
 # SALVAR FIGURA
@@ -219,7 +219,6 @@ def save_figure(fig, output_dir, filename):
 def plot_algorithm(algorithm, title, output_dir, y_max_scale):
     """Cria gráfico comparativo de um algoritmo em diferentes distribuições.
 
-    y_max_scale número   -> eixo Y fixo nesse valor.
     y_max_scale "global" -> eixo Y no máximo global (versão "geral").
     y_max_scale None     -> eixo Y normal, ajustado a cada gráfico.
     """
@@ -304,26 +303,15 @@ def main():
     print("=" * 70)
     print("GERADOR AUTOMÁTICO DE GRÁFICOS DE ORDENAÇÃO")
     print("=" * 70)
-    print(f"Escalas fixas: {', '.join(f'{s:.0e}' for s in SCALES)}")
     if GENERATE_GERAL:
-        print(f"Escala automática: {GERAL_OUTPUT_DIR}")
+        print(f"Escala automática global: {GERAL_OUTPUT_DIR}")
+    if GENERATE_NORMAL:
+        print(f"Escala normal: {NORMAL_OUTPUT_DIR}")
     print("Unidade de tempo: milissegundos (ms)")
     print("=" * 70)
 
     # Calcula escalas globais
     calculate_global_limits()
-
-    # Gera os gráficos de cada escala fixa na sua respectiva pasta
-    for scale in SCALES:
-        output_dir = "graficos_" + scientific_name(scale)
-
-        print()
-        print("#" * 70)
-        print(f"# ESCALA FIXA {scale:.0e} -> {output_dir}")
-        print("#" * 70)
-
-        for algorithm, title in ALGORITHMS:
-            plot_algorithm(algorithm, title, output_dir, scale)
 
     # Gera a versão com escala automática global (geral)
     if GENERATE_GERAL:
@@ -350,7 +338,7 @@ def main():
     print("PROCESSAMENTO FINALIZADO")
     print("=" * 70)
     print()
-    folders = ["graficos_" + scientific_name(s) for s in SCALES]
+    folders = []
     if GENERATE_GERAL:
         folders.append(GERAL_OUTPUT_DIR)
     if GENERATE_NORMAL:
