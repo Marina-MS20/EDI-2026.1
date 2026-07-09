@@ -17,10 +17,15 @@ INPUT_DIR = "output_ordenacao"
 # (ex.: 1e6 -> "graficos_10a6", 1e7 -> "graficos_10a7", 1e10 -> "graficos_10a10")
 SCALES = [1e6, 1e7, 1e10]
 
-# Também gera a versão com escala automática (ajustada aos dados)
-# na pasta "graficos_geral"
+# Também gera a versão com escala automática global (ajustada ao máximo
+# de todos os algoritmos) na pasta "graficos_geral"
 GENERATE_GERAL = True
 GERAL_OUTPUT_DIR = "graficos_geral"
+
+# Versão com escala normal: cada gráfico ajustado aos próprios dados,
+# sem escala fixa e sem notação científica forçada, tempo em ms
+GENERATE_NORMAL = True
+NORMAL_OUTPUT_DIR = "graficos_ordenacao"
 
 EXPORT_PNG = True
 EXPORT_SVG = True
@@ -162,8 +167,10 @@ def create_figure(title):
 def setup_axis(ax, ylabel, column, y_max_scale):
     """Configura rótulos e escala do eixo.
 
-    y_max_scale definido -> escala Y fixa (mesma para os 3 subplots).
-    y_max_scale = None   -> escala automática (máximo real + 10%).
+    y_max_scale número   -> escala Y fixa (mesma para os 3 subplots).
+    y_max_scale "global" -> escala automática (máximo global + 10%).
+    y_max_scale None     -> escala normal (cada gráfico ajustado aos
+                            próprios dados, formatação padrão).
     """
     ax.set_xlabel("n")
     ax.set_ylabel(ylabel)
@@ -173,12 +180,16 @@ def setup_axis(ax, ylabel, column, y_max_scale):
         ax.set_yscale("log")
         return
 
-    if y_max_scale is not None:
-        ax.set_ylim(0, y_max_scale)
-    else:
+    if y_max_scale is None:
+        # Escala normal: deixa o matplotlib ajustar aos dados plotados
+        return
+
+    if y_max_scale == "global":
         maximum = GLOBAL_MAX[column]
         if maximum > 0:
             ax.set_ylim(0, maximum * 1.1)  # 10% de margem
+    else:
+        ax.set_ylim(0, y_max_scale)
 
     # Formata eixo Y em notação científica
     ax.ticklabel_format(style='scientific', axis='y', scilimits=(0, 0))
@@ -208,8 +219,9 @@ def save_figure(fig, output_dir, filename):
 def plot_algorithm(algorithm, title, output_dir, y_max_scale):
     """Cria gráfico comparativo de um algoritmo em diferentes distribuições.
 
-    y_max_scale definido -> eixo Y fixo nesse valor.
-    y_max_scale = None   -> eixo Y automático (versão "geral").
+    y_max_scale número   -> eixo Y fixo nesse valor.
+    y_max_scale "global" -> eixo Y no máximo global (versão "geral").
+    y_max_scale None     -> eixo Y normal, ajustado a cada gráfico.
     """
     print()
     print("=" * 70)
@@ -313,15 +325,25 @@ def main():
         for algorithm, title in ALGORITHMS:
             plot_algorithm(algorithm, title, output_dir, scale)
 
-    # Gera a versão com escala automática (geral)
+    # Gera a versão com escala automática global (geral)
     if GENERATE_GERAL:
         print()
         print("#" * 70)
-        print(f"# ESCALA AUTOMÁTICA -> {GERAL_OUTPUT_DIR}")
+        print(f"# ESCALA AUTOMÁTICA GLOBAL -> {GERAL_OUTPUT_DIR}")
         print("#" * 70)
 
         for algorithm, title in ALGORITHMS:
-            plot_algorithm(algorithm, title, GERAL_OUTPUT_DIR, None)
+            plot_algorithm(algorithm, title, GERAL_OUTPUT_DIR, "global")
+
+    # Gera a versão com escala normal (cada gráfico nos próprios dados)
+    if GENERATE_NORMAL:
+        print()
+        print("#" * 70)
+        print(f"# ESCALA NORMAL -> {NORMAL_OUTPUT_DIR}")
+        print("#" * 70)
+
+        for algorithm, title in ALGORITHMS:
+            plot_algorithm(algorithm, title, NORMAL_OUTPUT_DIR, None)
 
     print()
     print("=" * 70)
@@ -331,6 +353,8 @@ def main():
     folders = ["graficos_" + scientific_name(s) for s in SCALES]
     if GENERATE_GERAL:
         folders.append(GERAL_OUTPUT_DIR)
+    if GENERATE_NORMAL:
+        folders.append(NORMAL_OUTPUT_DIR)
     print("Gráficos salvos em: " + ", ".join(folders))
 
 # ============================================================
