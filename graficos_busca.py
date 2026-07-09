@@ -22,8 +22,20 @@ HUMAN_FORMATTER = FuncFormatter(human_format)
 # CONFIGURAÇÃO
 # ============================================================
 
-INPUT_DIR = "output 5 horas 7 MLHOS"
 OUTPUT_DIR = "graficos_busca"
+
+# Usa a pasta "output" (dados novos do MainBusca, tempo medido em lote e
+# normalizado para 10 mil buscas) se ela existir; senão cai para a pasta
+# antiga (tempo por busca individual).
+if Path("output").exists():
+    INPUT_DIR = "output"
+    NEW_DATA = True
+else:
+    INPUT_DIR = "output 5 horas 7 MLHOS"
+    NEW_DATA = False
+
+# Rótulo do eixo de tempo conforme o significado do dado
+TIME_LABEL = "Tempo por 10 mil buscas" if NEW_DATA else "Tempo"
 
 EXPORT_PNG = True
 EXPORT_SVG = True
@@ -56,12 +68,20 @@ MARKER_SIZE = 2.5
 # ESTRUTURAS DE BUSCA (arquivos conforme a pasta de dados)
 # ============================================================
 
-STRUCTURES = [
-    ("seq", "Busca Sequencial", ["seq"]),
-    ("bin", "Busca Binária", ["bin"]),
-    ("abb", "ABB", ["bst_random", "bst_sorted", "bst_reverse"]),
-    ("avl", "AVL", ["avl_random", "avl_sorted", "avl_reverse"]),
-]
+if NEW_DATA:
+    STRUCTURES = [
+        ("seq", "Busca Sequencial", ["seq_random", "seq_sorted", "seq_reverse"]),
+        ("bin", "Busca Binária", ["bin"]),
+        ("abb", "ABB", ["abb_random", "abb_sorted", "abb_reverse"]),
+        ("avl", "AVL", ["avl_random", "avl_sorted", "avl_reverse"]),
+    ]
+else:
+    STRUCTURES = [
+        ("seq", "Busca Sequencial", ["seq"]),
+        ("bin", "Busca Binária", ["bin"]),
+        ("abb", "ABB", ["bst_random", "bst_sorted", "bst_reverse"]),
+        ("avl", "AVL", ["avl_random", "avl_sorted", "avl_reverse"]),
+    ]
 
 # ============================================================
 # DISPOSIÇÕES (variantes de dados)
@@ -69,10 +89,16 @@ STRUCTURES = [
 
 DISPOSITIONS = {
     "seq": ("Aleatório", "green"),
+    "seq_random": ("Aleatório", "green"),
+    "seq_sorted": ("Ordenado", "olive"),
+    "seq_reverse": ("Reverso", "darkgreen"),
     "bin": ("Ordenado", "blue"),
     "bst_random": ("Aleatório", "orange"),
     "bst_sorted": ("Ordenado", "purple"),
     "bst_reverse": ("Reverso", "brown"),
+    "abb_random": ("Aleatório", "orange"),
+    "abb_sorted": ("Ordenado", "purple"),
+    "abb_reverse": ("Reverso", "brown"),
     "avl_random": ("Aleatório", "pink"),
     "avl_sorted": ("Ordenado", "cyan"),
     "avl_reverse": ("Reverso", "magenta"),
@@ -285,7 +311,7 @@ def plot_by_structure():
                 legend_handles.append(line_for_legend)
 
         setup_axis(ax_comp, "Comparações", "Comparações")
-        setup_axis(ax_time, f"Tempo ({time_unit})", f"Tempo ({time_unit})")
+        setup_axis(ax_time, f"{TIME_LABEL} ({time_unit})", f"{TIME_LABEL} ({time_unit})")
 
         if legend_handles:
             add_legend(fig, legend_handles, legend_labels, ncol=len(legend_labels))
@@ -380,7 +406,7 @@ def plot_global_comparisons(struct_ids, title, out_filename):
             legend_handles.append(line_for_legend)
 
     setup_axis(ax_comp, "Comparações", "Comparações")
-    setup_axis(ax_time, f"Tempo ({time_unit})", f"Tempo ({time_unit})")
+    setup_axis(ax_time, f"{TIME_LABEL} ({time_unit})", f"{TIME_LABEL} ({time_unit})")
 
     if legend_handles:
         add_legend(fig, legend_handles, legend_labels, ncol=len(legend_labels))

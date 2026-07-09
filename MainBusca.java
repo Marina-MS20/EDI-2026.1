@@ -6,6 +6,26 @@ public class MainBusca {
     private static final String CSV_FILE = "solarradiation.csv";
     private static final int TEST_SIZE = 2000;
 
+    // ---- medição de tempo ----
+    // Uma busca individual leva de ~100 ns a poucos µs — rápido demais para
+    // cronometrar uma a uma: o overhead do System.nanoTime() e o ruído do
+    // JIT/SO dominam a medida e o resultado oscila. Em vez disso, mede-se o
+    // lote inteiro de TEST_SIZE buscas num ÚNICO bloco de nanoTime, e o lote
+    // é repetido até acumular pelo menos MIN_MEASURE_NS de tempo medido.
+    // O tempo gravado no CSV é normalizado para REFERENCE_SEARCHES buscas,
+    // colocando a escala em milissegundos e comparável entre estruturas.
+    private static final long MIN_MEASURE_NS = 25_000_000L; // mede no mínimo 25 ms
+    // Teto de segurança apenas: o laço para ao atingir MIN_MEASURE_NS, mas
+    // lotes minúsculos (n pequeno -> poucas buscas) precisam de milhares de
+    // repetições para acumular tempo suficiente e sair da zona de ruído.
+    private static final int  MAX_REPEATS = 1_000_000;
+    private static final int  REFERENCE_SEARCHES = 10_000;  // tempo reportado = p/ 10 mil buscas
+
+    // Buscas de aquecimento executadas SEM medição antes do cronômetro:
+    // os primeiros lotes rodam em código ainda não compilado pelo JIT e
+    // saem inflados (pico artificial nos primeiros pontos de n).
+    private static final int  WARMUP_SEARCHES = 1000;
+
     // seed fixa e usada de forma determinística por n (ver gerarVariantes)
     private static final long BASE_SEED = 42L;
 
@@ -635,93 +655,153 @@ public class MainBusca {
 
     static Result benchmarkSequential(List<Long> data, List<Long> tests) {
 
-        long t = 0, c = 0;
-
-        for (long x : tests) {
-            long s = System.nanoTime();
-
-            int comp = 0;
+        // aquecimento (não medido)
+        int w = Math.min(WARMUP_SEARCHES, tests.size());
+        for (int i = 0; i < w; i++) {
+            long x = tests.get(i);
             for (long v : data) {
-                comp++;
                 if (v == x) break;
             }
-
-            long e = System.nanoTime();
-
-            t += (e - s);
-            c += comp;
         }
 
-        return new Result(t / tests.size(), c / tests.size());
+        long comps = 0;
+        long total = 0;
+        int repeats = 0;
+
+        while (repeats == 0 || (total < MIN_MEASURE_NS && repeats < MAX_REPEATS)) {
+
+            long s = System.nanoTime();
+
+            for (long x : tests) {
+                int comp = 0;
+                for (long v : data) {
+                    comp++;
+                    if (v == x) break;
+                }
+                comps += comp;
+            }
+
+            total += System.nanoTime() - s;
+            repeats++;
+        }
+
+        long searches = (long) repeats * tests.size();
+        long timeRef = Math.round((double) total / searches * REFERENCE_SEARCHES);
+
+        return new Result(timeRef, comps / searches);
     }
 
     static Result benchmarkBinary(List<Long> data, List<Long> tests) {
 
-        long t = 0, c = 0;
-
-        for (long x : tests) {
-
-            long s = System.nanoTime();
-
+        // aquecimento (não medido)
+        int w = Math.min(WARMUP_SEARCHES, tests.size());
+        for (int i = 0; i < w; i++) {
+            long x = tests.get(i);
             int l = 0, r = data.size() - 1;
-            int comp = 0;
-
             while (l <= r) {
                 int m = (l + r) / 2;
-                comp++;
-
                 int cmp = Long.compare(data.get(m), x);
-
                 if (cmp == 0) break;
                 else if (cmp < 0) l = m + 1;
                 else r = m - 1;
             }
-
-            long e = System.nanoTime();
-
-            t += (e - s);
-            c += comp;
         }
 
-        return new Result(t / tests.size(), c / tests.size());
+        long comps = 0;
+        long total = 0;
+        int repeats = 0;
+
+        while (repeats == 0 || (total < MIN_MEASURE_NS && repeats < MAX_REPEATS)) {
+
+            long s = System.nanoTime();
+
+            for (long x : tests) {
+
+                int l = 0, r = data.size() - 1;
+                int comp = 0;
+
+                while (l <= r) {
+                    int m = (l + r) / 2;
+                    comp++;
+
+                    int cmp = Long.compare(data.get(m), x);
+
+                    if (cmp == 0) break;
+                    else if (cmp < 0) l = m + 1;
+                    else r = m - 1;
+                }
+
+                comps += comp;
+            }
+
+            total += System.nanoTime() - s;
+            repeats++;
+        }
+
+        long searches = (long) repeats * tests.size();
+        long timeRef = Math.round((double) total / searches * REFERENCE_SEARCHES);
+
+        return new Result(timeRef, comps / searches);
     }
 
     static Result benchmarkABB(TArvore t, List<Long> tests) {
 
-        long time = 0, comp = 0;
-
-        for (long x : tests) {
-
-            t.comparisons = 0;
-
-            long s = System.nanoTime();
-            t.pesquisa(x);
-            long e = System.nanoTime();
-
-            time += (e - s);
-            comp += t.comparisons;
+        // aquecimento (não medido)
+        int w = Math.min(WARMUP_SEARCHES, tests.size());
+        for (int i = 0; i < w; i++) {
+            t.pesquisa(tests.get(i));
         }
 
-        return new Result(time / tests.size(), comp / tests.size());
+        t.comparisons = 0;
+        long total = 0;
+        int repeats = 0;
+
+        while (repeats == 0 || (total < MIN_MEASURE_NS && repeats < MAX_REPEATS)) {
+
+            long s = System.nanoTime();
+
+            for (long x : tests) {
+                t.pesquisa(x);
+            }
+
+            total += System.nanoTime() - s;
+            repeats++;
+        }
+
+        long searches = (long) repeats * tests.size();
+        long timeRef = Math.round((double) total / searches * REFERENCE_SEARCHES);
+
+        return new Result(timeRef, t.comparisons / searches);
     }
 
     static Result benchmarkAVL(TArvoreAVL t, List<Long> tests) {
 
-        long time = 0, comp = 0;
-
-        for (long x : tests) {
-
-            t.comparisons = 0;
-
-            long s = System.nanoTime();
-            t.pesquisa(x);
-            long e = System.nanoTime();
-
-            time += (e - s);
-            comp += t.comparisons;
+        // aquecimento (não medido)
+        int w = Math.min(WARMUP_SEARCHES, tests.size());
+        for (int i = 0; i < w; i++) {
+            t.pesquisa(tests.get(i));
         }
 
-        return new Result(time / tests.size(), comp / tests.size());
+        t.comparisons = 0;
+        long total = 0;
+        int repeats = 0;
+
+        while (repeats == 0 || (total < MIN_MEASURE_NS && repeats < MAX_REPEATS)) {
+
+            long s = System.nanoTime();
+
+            for (long x : tests) {
+                t.pesquisa(x);
+            }
+
+            total += System.nanoTime() - s;
+            repeats++;
+        }
+
+        long searches = (long) repeats * tests.size();
+        long timeRef = Math.round((double) total / searches * REFERENCE_SEARCHES);
+
+        return new Result(timeRef, t.comparisons / searches);
     }
 
     // ===================== CSV =====================

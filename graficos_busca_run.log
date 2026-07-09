@@ -1,0 +1,49 @@
+======================================================================
+GERADOR AUTOMÁTICO DE GRÁFICOS DE BUSCA
+======================================================================
+Escala: real (automática por gráfico), sem notação 10^X
+Suavização do tempo: mediana móvel (janela 9)
+Unidade de tempo: adaptativa (ns / µs / ms)
+======================================================================
+
+======================================================================
+Gerando gráfico: Busca Sequencial (Comparações + Tempo)
+======================================================================
+Domínio comum: n até 182,919
+[OK] Gráfico salvo: seq_comparacoes_tempo (tempo em ms)
+
+======================================================================
+Gerando gráfico: Busca Binária (Comparações + Tempo)
+======================================================================
+Domínio comum: n até 182,919
+[OK] Gráfico salvo: bin_comparacoes_tempo (tempo em ms)
+
+======================================================================
+Gerando gráfico: ABB (Comparações + Tempo)
+======================================================================
+Domínio comum: n até 20,427
+[OK] Gráfico salvo: abb_comparacoes_tempo (tempo em ms)
+
+======================================================================
+Gerando gráfico: AVL (Comparações + Tempo)
+======================================================================
+Domínio comum: n até 93,866
+[OK] Gráfico salvo: avl_comparacoes_tempo (tempo em ms)
+
+======================================================================
+Gráfico Global: Comparação Global (todas as estruturas)
+======================================================================
+Domínio comum: n até 93,866
+[OK] Gráfico salvo: global_comparacoes_tempo (tempo em ms)
+
+======================================================================
+Gráfico Global: Comparação Global (sem busca sequencial)
+======================================================================
+Domínio comum: n até 93,866
+[OK] Gráfico salvo: global_rapidas_comparacoes_tempo (tempo em ms)
+
+======================================================================
+PROCESSAMENTO FINALIZADO
+======================================================================
+
+Gráficos salvos em: graficos_busca
