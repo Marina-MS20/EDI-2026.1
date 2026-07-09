@@ -23,7 +23,7 @@ public class MainOrdenacao {
 
     // parâmetros GROWTH_STEP
     private static final int GROWTH_START_N = 10;
-    private static final int GROWTH_MAX_N = 150_000;
+    private static final int GROWTH_MAX_N = 500_000;
     private static final double GROWTH_FACTOR = 1.10;
     private static final double GROWTH_FINE_FACTOR = 1.02;
 
