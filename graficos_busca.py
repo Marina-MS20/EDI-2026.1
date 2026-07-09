@@ -234,6 +234,14 @@ def plot_by_structure():
         if not datasets:
             continue
 
+        # Corta o eixo X no domínio comum: todas as curvas até o MENOR
+        # n máximo entre as variantes. Sem isso, uma variante que falhou
+        # cedo (ex.: ABB degenerada em n=24 mil) vira uma parede vertical
+        # espremida no zero quando outra vai até 7 milhões.
+        common_max_n = min(df["n"].max() for _, df in datasets)
+        datasets = [(f, df[df["n"] <= common_max_n]) for f, df in datasets]
+        print(f"Domínio comum: n até {common_max_n:,.0f}")
+
         # Unidade de tempo adaptativa: escolhida pelo maior tempo da estrutura
         max_time = max(df["time_ms"].max() for _, df in datasets if "time_ms" in df.columns)
         time_unit, time_factor = pick_time_unit(max_time)
@@ -294,13 +302,13 @@ def plot_by_structure():
 # GERA GRÁFICO GLOBAL COMPARATIVO (Comparações + Tempo juntos)
 # ============================================================
 
-def plot_global_comparisons():
-    """Cria UM gráfico global comparando todas as estruturas, com
+def plot_global_comparisons(struct_ids, title, out_filename):
+    """Cria UM gráfico global comparando as estruturas indicadas, com
     Comparações e Tempo lado a lado, em escala real."""
 
     print()
     print("=" * 70)
-    print("Gráfico Global: Comparações + Tempo (todas as estruturas)")
+    print(f"Gráfico Global: {title}")
     print("=" * 70)
 
     struct_colors = {
@@ -312,6 +320,8 @@ def plot_global_comparisons():
 
     datasets = []
     for struct_id, struct_name, files in STRUCTURES:
+        if struct_id not in struct_ids:
+            continue
         df = load_csv(files[0])  # primeira variante de cada estrutura
         if df is None:
             print(f"[AVISO] Dados não encontrados para {files[0]}")
@@ -321,10 +331,15 @@ def plot_global_comparisons():
     if not datasets:
         return
 
+    # Corta o eixo X no domínio comum entre as estruturas incluídas
+    common_max_n = min(df["n"].max() for _, _, df in datasets)
+    datasets = [(s, name, df[df["n"] <= common_max_n]) for s, name, df in datasets]
+    print(f"Domínio comum: n até {common_max_n:,.0f}")
+
     max_time = max(df["time_ms"].max() for _, _, df in datasets if "time_ms" in df.columns)
     time_unit, time_factor = pick_time_unit(max_time)
 
-    fig, (ax_comp, ax_time) = create_figure("Comparação Global (todas as estruturas)")
+    fig, (ax_comp, ax_time) = create_figure(title)
 
     legend_handles = []
     legend_labels = []
@@ -368,12 +383,12 @@ def plot_global_comparisons():
     setup_axis(ax_time, f"Tempo ({time_unit})", f"Tempo ({time_unit})")
 
     if legend_handles:
-        add_legend(fig, legend_handles, legend_labels, ncol=4)
+        add_legend(fig, legend_handles, legend_labels, ncol=len(legend_labels))
         fig.tight_layout(rect=[0, 0.13, 1, 0.90])
-        save_figure(fig, "global_comparacoes_tempo")
+        save_figure(fig, out_filename)
         plt.close(fig)
 
-        print(f"[OK] Gráfico salvo: global_comparacoes_tempo (tempo em {time_unit})")
+        print(f"[OK] Gráfico salvo: {out_filename} (tempo em {time_unit})")
     else:
         plt.close(fig)
 
@@ -394,7 +409,22 @@ def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     plot_by_structure()
-    plot_global_comparisons()
+
+    # Global com todas as estruturas: a sequencial (O(n)) domina a escala
+    # e as demais ficam rentes ao zero — é a comparação honesta do panorama
+    plot_global_comparisons(
+        ["seq", "bin", "abb", "avl"],
+        "Comparação Global (todas as estruturas)",
+        "global_comparacoes_tempo",
+    )
+
+    # Global só com as estruturas rápidas (sem a sequencial), para dar
+    # para enxergar a diferença entre binária, ABB e AVL
+    plot_global_comparisons(
+        ["bin", "abb", "avl"],
+        "Comparação Global (sem busca sequencial)",
+        "global_rapidas_comparacoes_tempo",
+    )
 
     print()
     print("=" * 70)
