@@ -4,3 +4,17 @@ out/
 *.pdf
 *.iml
 .idea/
+
+# compilados (regenera com javac / compilar.bat)
+*.class
+
+# logs de execucao dos benchmarks
+*.log
+
+# lixo do vscode code runner
+tempCodeRunnerFile.py
+
+# lixo do windows / libreoffice
+Thumbs.db
+desktop.ini
+.~lock*#
