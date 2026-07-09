@@ -1,42 +1,41 @@
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
 from pathlib import Path
 
-def scientific_name(value):
-    exp = int(f"{value:.0e}".split("e")[1])
-    return f"10a{exp}"
+def human_format(value, _pos=None):
+    """Formata valores dos eixos em português: mil, mi (milhão), bi (bilhão).
+    Ex.: 7_000_000 -> "7 mi", 1_500 -> "1,5 mil", 0.5 -> "0,5"."""
+    if value == 0:
+        return "0"
+    for div, suffix in ((1e9, " bi"), (1e6, " mi"), (1e3, " mil")):
+        if abs(value) >= div:
+            txt = f"{value / div:.1f}".rstrip("0").rstrip(".")
+            return txt.replace(".", ",") + suffix
+    txt = f"{value:.2f}".rstrip("0").rstrip(".")
+    return txt.replace(".", ",")
+
+HUMAN_FORMATTER = FuncFormatter(human_format)
 
 # ============================================================
 # CONFIGURAÇÃO
 # ============================================================
 
-# Escalas Y máximas individuais (SEMPRE respeitadas — o eixo Y de cada
-# gráfico vai de 0 até este valor, independente do valor máximo real dos
-# dados. Isso garante que todos os gráficos fiquem na mesma escala.)
-Y_MAX_COMPARISONS = 1e5
-Y_MAX_TIME_MS = 1e5
-
-
-INPUT_DIR = "output"
-
-OUTPUT_DIR = (
-    "graficos_busca_cm_"
-    + scientific_name(Y_MAX_COMPARISONS)
-    + "_t_"
-    + scientific_name(Y_MAX_TIME_MS)
-)
+INPUT_DIR = "output 5 horas 7 MLHOS"
+OUTPUT_DIR = "graficos_busca"
 
 EXPORT_PNG = True
 EXPORT_SVG = True
 EXPORT_PDF = False
 
-USE_LOG_SCALE = False
+# Janela da mediana móvel usada para suavizar o tempo e remover os
+# picos instantâneos de medição (GC, interrupções do SO etc.)
+SMOOTH_WINDOW = 9
 
 FIGSIZE = (12, 6)
 FIGSIZE_COMBINED = (FIGSIZE[0] * 1.7, FIGSIZE[1])
 DPI = 300
-
 
 # ============================================================
 # FONTES (ampliadas para os gráficos ficarem legíveis quando
@@ -50,17 +49,17 @@ FONT_TICK_LABEL = 15
 FONT_LEGEND = 17
 LEGEND_MARKERSCALE = 1.4
 
-LINE_WIDTH = 3.0
-MARKER_SIZE = 6
+LINE_WIDTH = 2.5
+MARKER_SIZE = 2.5
 
 # ============================================================
-# ESTRUTURAS DE BUSCA
+# ESTRUTURAS DE BUSCA (arquivos conforme a pasta de dados)
 # ============================================================
 
 STRUCTURES = [
-    ("seq", "Busca Sequencial", ["seq_random", "seq_sorted", "seq_reverse"]),
+    ("seq", "Busca Sequencial", ["seq"]),
     ("bin", "Busca Binária", ["bin"]),
-    ("abb", "ABB", ["abb_random", "abb_sorted", "abb_reverse"]),
+    ("abb", "ABB", ["bst_random", "bst_sorted", "bst_reverse"]),
     ("avl", "AVL", ["avl_random", "avl_sorted", "avl_reverse"]),
 ]
 
@@ -69,26 +68,14 @@ STRUCTURES = [
 # ============================================================
 
 DISPOSITIONS = {
-    "seq_random": ("Aleatório", "yellow"),
-    "seq_sorted": ("Ordenado", "blue"),
-    "seq_reverse": ("Reverso", "red"),
-    "bin": ("Ordenado", "green"),
-    "abb_random": ("Aleatório", "orange"),
-    "abb_sorted": ("Ordenado", "purple"),
-    "abb_reverse": ("Reverso", "brown"),
+    "seq": ("Aleatório", "green"),
+    "bin": ("Ordenado", "blue"),
+    "bst_random": ("Aleatório", "orange"),
+    "bst_sorted": ("Ordenado", "purple"),
+    "bst_reverse": ("Reverso", "brown"),
     "avl_random": ("Aleatório", "pink"),
     "avl_sorted": ("Ordenado", "cyan"),
     "avl_reverse": ("Reverso", "magenta"),
-}
-
-# ============================================================
-# ESCALAS GLOBAIS (apenas para fins de diagnóstico/print — não
-# influenciam mais o limite do eixo Y, que agora é sempre fixo)
-# ============================================================
-
-GLOBAL_MAX = {
-    "comparisons": 0,
-    "time_ms": 0
 }
 
 # ============================================================
@@ -96,7 +83,8 @@ GLOBAL_MAX = {
 # ============================================================
 
 def load_csv(filename):
-    """Carrega CSV e remove linhas com 'FAIL'"""
+    """Carrega CSV, remove linhas com 'FAIL', converte tempo para ms e
+    suaviza o tempo com mediana móvel para eliminar picos de medição."""
     path = Path(INPUT_DIR) / f"{filename}.csv"
 
     if not path.exists():
@@ -115,50 +103,43 @@ def load_csv(filename):
         # Remove linhas com NaN após conversão
         df = df.dropna()
 
-        # Converte tempo de ns para ms (divide por 1.000.000)
+        if df.empty:
+            return None
+
+        df = df.sort_values("n")
+
+        # Converte tempo de ns para ms
         if "time_ns" in df.columns:
             df["time_ms"] = df["time_ns"] / 1e6
             df = df.drop(columns=["time_ns"])
 
-        return df if not df.empty else None
+        # Suaviza o tempo: mediana móvel centrada — remove os "pipocos"
+        # (picos instantâneos) sem distorcer a tendência real
+        if "time_ms" in df.columns and len(df) >= SMOOTH_WINDOW:
+            df["time_ms"] = (
+                df["time_ms"]
+                .rolling(window=SMOOTH_WINDOW, center=True, min_periods=1)
+                .median()
+            )
+
+        return df
 
     except Exception as e:
         print(f"Erro lendo {filename}.csv: {e}")
         return None
 
 # ============================================================
-# CALCULA ESCALAS GLOBAIS PARA TODAS AS ESTRUTURAS (diagnóstico)
+# UNIDADE DE TEMPO ADAPTATIVA
 # ============================================================
 
-def calculate_global_limits():
-    """Calcula os valores máximos para cada métrica em TODAS as estruturas.
-    Usado apenas para o print de diagnóstico comparando dado real x teto
-    configurado — não é mais usado para definir o limite do eixo Y."""
-    print()
-    print("=" * 70)
-    print("CALCULANDO ESCALAS GLOBAIS (apenas diagnóstico)")
-    print("=" * 70)
-
-    for _, _, files in STRUCTURES:
-        for filename in files:
-            df = load_csv(filename)
-
-            if df is None:
-                continue
-
-            for column in GLOBAL_MAX:
-                if column in df.columns:
-                    value = df[column].max()
-                    if value > GLOBAL_MAX[column]:
-                        GLOBAL_MAX[column] = value
-
-    print()
-    print(f"Máximo real nos dados — Comparações : {GLOBAL_MAX['comparisons']:,.0f}")
-    print(f"Máximo real nos dados — Tempo (ms)  : {GLOBAL_MAX['time_ms']:,.6f}")
-    print()
-    print(f"Escala Y fixa — Comparações         : {Y_MAX_COMPARISONS:.0e}")
-    print(f"Escala Y fixa — Tempo (ms)          : {Y_MAX_TIME_MS:.0e}")
-    print()
+def pick_time_unit(max_time_ms):
+    """Escolhe a unidade de tempo real mais legível para o gráfico.
+    Retorna (rótulo, fator multiplicador sobre o valor em ms)."""
+    if max_time_ms >= 1:
+        return "ms", 1
+    if max_time_ms >= 1e-3:
+        return "µs", 1e3
+    return "ns", 1e6
 
 # ============================================================
 # CRIA FIGURA COMBINADA (Comparações + Tempo lado a lado)
@@ -166,46 +147,35 @@ def calculate_global_limits():
 
 def create_figure(title):
     """Cria uma única figura com 2 subplots lado a lado:
-    à esquerda Comparações, à direita Tempo (ms)."""
+    à esquerda Comparações, à direita Tempo."""
     fig, axes = plt.subplots(1, 2, figsize=FIGSIZE_COMBINED)
     fig.suptitle(title, fontsize=FONT_TITLE, fontweight="bold")
     return fig, axes
 
 # ============================================================
-# CONFIGURA EIXO COM ESCALA FIXA (SEMPRE RESPEITADA)
+# CONFIGURA EIXO (escala real, automática, sem notação 10^X)
 # ============================================================
 
-def setup_axis(ax, subtitle, ylabel, y_max_scale):
-    """Configura rótulos, fontes e escala do eixo.
-
-    A escala Y é SEMPRE fixada em (0, y_max_scale) — não é recalculada a
-    partir do valor máximo encontrado nos dados. Isso é o que garante que
-    Y_MAX_COMPARISONS / Y_MAX_TIME_MS sejam de fato respeitados em todos
-    os gráficos.
-    """
+def setup_axis(ax, subtitle, ylabel):
+    """Configura rótulos e fontes do eixo. A escala é a real dos dados
+    plotados (automática) e os números são formatados como mil/mi/bi
+    em vez de notação científica."""
     ax.set_title(subtitle, fontsize=FONT_SUBTITLE)
     ax.set_xlabel("n", fontsize=FONT_AXIS_LABEL)
     ax.set_ylabel(ylabel, fontsize=FONT_AXIS_LABEL)
     ax.tick_params(axis='both', which='major', labelsize=FONT_TICK_LABEL)
     ax.grid(True, alpha=0.3)
 
-    if USE_LOG_SCALE:
-        # Escala log não aceita 0 como limite inferior; fixamos só o topo.
-        ax.set_yscale("log")
-        ax.set_ylim(top=y_max_scale)
-    else:
-        ax.set_ylim(0, y_max_scale)
-        # Formata eixo Y em notação científica
-        ax.ticklabel_format(style='scientific', axis='y', scilimits=(0, 0))
-        ax.yaxis.get_offset_text().set_fontsize(FONT_TICK_LABEL)
+    ax.xaxis.set_major_formatter(HUMAN_FORMATTER)
+    ax.yaxis.set_major_formatter(HUMAN_FORMATTER)
+    ax.set_ylim(bottom=0)
 
 # ============================================================
-# LEGENDA PADRONIZADA (fonte ampliada, com moldura para destacar)
+# LEGENDA PADRONIZADA
 # ============================================================
 
 def add_legend(fig, handles, labels, ncol):
-    """Adiciona legenda no rodapé da figura com fonte ampliada, para
-    continuar legível quando vários gráficos forem reduzidos numa slide."""
+    """Adiciona legenda no rodapé da figura com fonte ampliada."""
     return fig.legend(
         handles,
         labels,
@@ -244,7 +214,7 @@ def save_figure(fig, filename):
 
 def plot_by_structure():
     """Cria UM gráfico por estrutura, com Comparações e Tempo lado a
-    lado na mesma imagem."""
+    lado na mesma imagem, em escala real."""
 
     for struct_id, struct_name, files in STRUCTURES:
 
@@ -253,62 +223,61 @@ def plot_by_structure():
         print(f"Gerando gráfico: {struct_name} (Comparações + Tempo)")
         print("=" * 70)
 
+        datasets = []
+        for filename in files:
+            df = load_csv(filename)
+            if df is None:
+                print(f"[AVISO] Dados não encontrados para {filename}")
+                continue
+            datasets.append((filename, df))
+
+        if not datasets:
+            continue
+
+        # Unidade de tempo adaptativa: escolhida pelo maior tempo da estrutura
+        max_time = max(df["time_ms"].max() for _, df in datasets if "time_ms" in df.columns)
+        time_unit, time_factor = pick_time_unit(max_time)
+
         fig, (ax_comp, ax_time) = create_figure(struct_name)
 
         legend_handles = []
         legend_labels = []
 
-        for filename in files:
-            df = load_csv(filename)
-
-            if df is None:
-                print(f"[AVISO] Dados não encontrados para {filename}")
-                continue
-
+        for filename, df in datasets:
             disposition_label, color = DISPOSITIONS.get(filename, (filename, "gray"))
-
             line_for_legend = None
 
             if "n" in df.columns and "comparisons" in df.columns:
-                try:
-                    line, = ax_comp.plot(
-                        df["n"],
-                        df["comparisons"],
-                        color=color,
-                        linewidth=LINE_WIDTH,
-                        marker="o",
-                        markersize=MARKER_SIZE,
-                        label=disposition_label
-                    )
-                    setup_axis(ax_comp, "Comparações", "Comparações", Y_MAX_COMPARISONS)
-                    line_for_legend = line
-                except Exception as e:
-                    print(f"[ERRO] Ao plotar comparações de {filename}: {e}")
-            else:
-                print(f"[AVISO] Coluna 'comparisons' faltante em {filename}")
+                line, = ax_comp.plot(
+                    df["n"],
+                    df["comparisons"],
+                    color=color,
+                    linewidth=LINE_WIDTH,
+                    marker="o",
+                    markersize=MARKER_SIZE,
+                    label=disposition_label
+                )
+                line_for_legend = line
 
             if "n" in df.columns and "time_ms" in df.columns:
-                try:
-                    line2, = ax_time.plot(
-                        df["n"],
-                        df["time_ms"],
-                        color=color,
-                        linewidth=LINE_WIDTH,
-                        marker="o",
-                        markersize=MARKER_SIZE,
-                        label=disposition_label
-                    )
-                    setup_axis(ax_time, "Tempo (ms)", "Tempo (ms)", Y_MAX_TIME_MS)
-                    if line_for_legend is None:
-                        line_for_legend = line2
-                except Exception as e:
-                    print(f"[ERRO] Ao plotar tempo de {filename}: {e}")
-            else:
-                print(f"[AVISO] Coluna 'time_ms' faltante em {filename}")
+                line2, = ax_time.plot(
+                    df["n"],
+                    df["time_ms"] * time_factor,
+                    color=color,
+                    linewidth=LINE_WIDTH,
+                    marker="o",
+                    markersize=MARKER_SIZE,
+                    label=disposition_label
+                )
+                if line_for_legend is None:
+                    line_for_legend = line2
 
             if line_for_legend is not None and disposition_label not in legend_labels:
                 legend_labels.append(disposition_label)
                 legend_handles.append(line_for_legend)
+
+        setup_axis(ax_comp, "Comparações", "Comparações")
+        setup_axis(ax_time, f"Tempo ({time_unit})", f"Tempo ({time_unit})")
 
         if legend_handles:
             add_legend(fig, legend_handles, legend_labels, ncol=len(legend_labels))
@@ -317,7 +286,7 @@ def plot_by_structure():
             save_figure(fig, f"{struct_id}_comparacoes_tempo")
             plt.close(fig)
 
-            print(f"[OK] Gráfico salvo: {struct_id}_comparacoes_tempo")
+            print(f"[OK] Gráfico salvo: {struct_id}_comparacoes_tempo (tempo em {time_unit})")
         else:
             plt.close(fig)
 
@@ -327,17 +296,12 @@ def plot_by_structure():
 
 def plot_global_comparisons():
     """Cria UM gráfico global comparando todas as estruturas, com
-    Comparações e Tempo lado a lado na mesma imagem."""
+    Comparações e Tempo lado a lado, em escala real."""
 
     print()
     print("=" * 70)
     print("Gráfico Global: Comparações + Tempo (todas as estruturas)")
     print("=" * 70)
-
-    fig, (ax_comp, ax_time) = create_figure("Comparação Global (todas as estruturas)")
-
-    legend_handles = []
-    legend_labels = []
 
     struct_colors = {
         "seq": "green",
@@ -346,55 +310,62 @@ def plot_global_comparisons():
         "avl": "red",
     }
 
+    datasets = []
     for struct_id, struct_name, files in STRUCTURES:
-        filename = files[0]  # Pega a primeira variante
-        df = load_csv(filename)
-
+        df = load_csv(files[0])  # primeira variante de cada estrutura
         if df is None:
-            print(f"[AVISO] Dados não encontrados para {filename}")
+            print(f"[AVISO] Dados não encontrados para {files[0]}")
             continue
+        datasets.append((struct_id, struct_name, df))
 
+    if not datasets:
+        return
+
+    max_time = max(df["time_ms"].max() for _, _, df in datasets if "time_ms" in df.columns)
+    time_unit, time_factor = pick_time_unit(max_time)
+
+    fig, (ax_comp, ax_time) = create_figure("Comparação Global (todas as estruturas)")
+
+    legend_handles = []
+    legend_labels = []
+
+    for struct_id, struct_name, df in datasets:
         color = struct_colors.get(struct_id, "gray")
         line_for_legend = None
 
         if "n" in df.columns and "comparisons" in df.columns:
-            try:
-                line, = ax_comp.plot(
-                    df["n"],
-                    df["comparisons"],
-                    color=color,
-                    linewidth=LINE_WIDTH,
-                    marker="o",
-                    markersize=MARKER_SIZE,
-                    label=struct_name,
-                    alpha=0.8
-                )
-                setup_axis(ax_comp, "Comparações", "Comparações", Y_MAX_COMPARISONS)
-                line_for_legend = line
-            except Exception as e:
-                print(f"[ERRO] Ao plotar comparações de {filename}: {e}")
+            line, = ax_comp.plot(
+                df["n"],
+                df["comparisons"],
+                color=color,
+                linewidth=LINE_WIDTH,
+                marker="o",
+                markersize=MARKER_SIZE,
+                label=struct_name,
+                alpha=0.8
+            )
+            line_for_legend = line
 
         if "n" in df.columns and "time_ms" in df.columns:
-            try:
-                line2, = ax_time.plot(
-                    df["n"],
-                    df["time_ms"],
-                    color=color,
-                    linewidth=LINE_WIDTH,
-                    marker="o",
-                    markersize=MARKER_SIZE,
-                    label=struct_name,
-                    alpha=0.8
-                )
-                setup_axis(ax_time, "Tempo (ms)", "Tempo (ms)", Y_MAX_TIME_MS)
-                if line_for_legend is None:
-                    line_for_legend = line2
-            except Exception as e:
-                print(f"[ERRO] Ao plotar tempo de {filename}: {e}")
+            line2, = ax_time.plot(
+                df["n"],
+                df["time_ms"] * time_factor,
+                color=color,
+                linewidth=LINE_WIDTH,
+                marker="o",
+                markersize=MARKER_SIZE,
+                label=struct_name,
+                alpha=0.8
+            )
+            if line_for_legend is None:
+                line_for_legend = line2
 
         if line_for_legend is not None and struct_name not in legend_labels:
             legend_labels.append(struct_name)
             legend_handles.append(line_for_legend)
+
+    setup_axis(ax_comp, "Comparações", "Comparações")
+    setup_axis(ax_time, f"Tempo ({time_unit})", f"Tempo ({time_unit})")
 
     if legend_handles:
         add_legend(fig, legend_handles, legend_labels, ncol=4)
@@ -402,7 +373,7 @@ def plot_global_comparisons():
         save_figure(fig, "global_comparacoes_tempo")
         plt.close(fig)
 
-        print(f"[OK] Gráfico salvo: global_comparacoes_tempo")
+        print(f"[OK] Gráfico salvo: global_comparacoes_tempo (tempo em {time_unit})")
     else:
         plt.close(fig)
 
@@ -415,21 +386,14 @@ def main():
     print("=" * 70)
     print("GERADOR AUTOMÁTICO DE GRÁFICOS DE BUSCA")
     print("=" * 70)
-    print(f"Escala Y fixa Comparações: {Y_MAX_COMPARISONS:.0e}")
-    print(f"Escala Y fixa Tempo (ms): {Y_MAX_TIME_MS:.0e}")
-    print("Unidade de tempo: milissegundos (ms)")
+    print("Escala: real (automática por gráfico), sem notação 10^X")
+    print(f"Suavização do tempo: mediana móvel (janela {SMOOTH_WINDOW})")
+    print("Unidade de tempo: adaptativa (ns / µs / ms)")
     print("=" * 70)
 
-    # Cria diretório de saída
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    # Calcula escalas globais (apenas diagnóstico/print)
-    calculate_global_limits()
-
-    # Gera um gráfico por estrutura (Comparações + Tempo juntos)
     plot_by_structure()
-
-    # Gera o gráfico global comparativo (Comparações + Tempo juntos)
     plot_global_comparisons()
 
     print()
@@ -438,13 +402,6 @@ def main():
     print("=" * 70)
     print()
     print(f"Gráficos salvos em: {OUTPUT_DIR}")
-    print()
-    print("Gráficos gerados:")
-    print("  - seq_comparacoes_tempo.png")
-    print("  - bin_comparacoes_tempo.png")
-    print("  - abb_comparacoes_tempo.png")
-    print("  - avl_comparacoes_tempo.png")
-    print("  - global_comparacoes_tempo.png")
 
 # ============================================================
 # EXECUÇÃO
