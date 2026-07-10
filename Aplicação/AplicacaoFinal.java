@@ -16,6 +16,7 @@ public class AplicacaoFinal {
     private static final int LIMITE_PADRAO = 100_000;
 
     private final TArvoreAVL arvore = new TArvoreAVL();
+    private final Analises analises = new Analises(arvore);
     private long totalRegistros = 0;
 
     private JFrame frame;
@@ -32,6 +33,11 @@ public class AplicacaoFinal {
     private JTextArea areaRemove;
     private JTable tabela;
     private JLabel lblOrdenacao;
+    private JTextField txtData;
+    private JTextField txtLambda;
+    private JTextField txtDe;
+    private JTextField txtAte;
+    private JTextArea areaAnalises;
 
     public static void main(String[] args) {
         int limite = LIMITE_PADRAO;
@@ -114,6 +120,7 @@ public class AplicacaoFinal {
         abas.addTab("Inserir", montarAbaInserir());
         abas.addTab("Remover", montarAbaRemover());
         abas.addTab("Exibição ordenada", montarAbaExibicao());
+        abas.addTab("Análises", montarAbaAnalises());
         p.add(abas, BorderLayout.CENTER);
 
         return p;
@@ -402,11 +409,122 @@ public class AplicacaoFinal {
             tabela.getColumnModel().getColumn(i).setPreferredWidth(i == 0 ? 90 : 130);
     }
 
+    // ===================== ABA ANÁLISES =====================
+
+    private JPanel montarAbaAnalises() {
+        JPanel p = new JPanel(new BorderLayout(8, 8));
+        p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JPanel topo = new JPanel(new GridLayout(0, 1));
+
+        JPanel campos = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        campos.add(new JLabel("Data (aaaa-mm-dd):"));
+        txtData = new JTextField(9);
+        campos.add(txtData);
+        campos.add(new JLabel("Comprimento de onda (nm):"));
+        txtLambda = new JTextField(7);
+        campos.add(txtLambda);
+        campos.add(new JLabel("Intervalo (nm): de"));
+        txtDe = new JTextField(6);
+        campos.add(txtDe);
+        campos.add(new JLabel("até"));
+        txtAte = new JTextField(6);
+        campos.add(txtAte);
+        topo.add(campos);
+
+        JPanel botoes = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton b1 = new JButton("Maior emissão da data");
+        JButton b2 = new JButton("Data de maior emissão do λ");
+        JButton b3 = new JButton("Primeira e última data");
+        JButton b4 = new JButton("Menor e maior λ");
+        JButton b5 = new JButton("Média no intervalo");
+        JButton b6 = new JButton("Gráfico do espectro");
+        botoes.add(b1);
+        botoes.add(b2);
+        botoes.add(b3);
+        botoes.add(b4);
+        botoes.add(b5);
+        botoes.add(b6);
+        topo.add(botoes);
+
+        p.add(topo, BorderLayout.NORTH);
+
+        areaAnalises = new JTextArea();
+        areaAnalises.setEditable(false);
+        areaAnalises.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
+        p.add(new JScrollPane(areaAnalises), BorderLayout.CENTER);
+
+        b1.addActionListener(e -> {
+            String data = txtData.getText().trim();
+            if (data.isEmpty()) { avisa("Informe a data."); return; }
+            registraLog(analises.maiorEmissaoNaData(data));
+        });
+
+        b2.addActionListener(e -> {
+            Double lambda = lerDouble(txtLambda.getText());
+            if (lambda == null) { avisa("Informe o comprimento de onda."); return; }
+            registraLog(analises.dataDeMaiorEmissao(lambda));
+        });
+
+        b3.addActionListener(e -> registraLog(analises.limitesDeDatas()));
+
+        b4.addActionListener(e -> registraLog(analises.limitesDeLambda()));
+
+        b5.addActionListener(e -> {
+            String data = txtData.getText().trim();
+            Double de = lerDouble(txtDe.getText());
+            Double ate = lerDouble(txtAte.getText());
+            if (data.isEmpty() || de == null || ate == null) {
+                avisa("Informe a data e o intervalo de comprimento de onda.");
+                return;
+            }
+            registraLog(analises.mediaNoIntervalo(data, de, ate));
+        });
+
+        b6.addActionListener(e -> {
+            String data = txtData.getText().trim();
+            if (data.isEmpty()) { avisa("Informe a data."); return; }
+
+            Analises.Espectro esp = analises.espectroDaData(data);
+            registraLog(esp.registro);
+
+            if (esp.pontos.isEmpty()) {
+                avisa("Nenhum registro para a data " + data + ".");
+                return;
+            }
+            JDialog d = new JDialog(frame, "Espectro de emissão - " + data, false);
+            d.setContentPane(new GraficoEspectro(data, esp.pontos));
+            d.pack();
+            d.setLocationRelativeTo(frame);
+            d.setVisible(true);
+        });
+
+        return p;
+    }
+
+    private void avisa(String msg) {
+        JOptionPane.showMessageDialog(frame, msg, "Análises", JOptionPane.WARNING_MESSAGE);
+    }
+
+    private void registraLog(String registro) {
+        areaAnalises.append(registro);
+        areaAnalises.append("--------------------------------------------------\n");
+        areaAnalises.setCaretPosition(areaAnalises.getDocument().getLength());
+    }
+
     // ===================== AUXILIARES =====================
 
     private static Long lerLong(String s) {
         try {
             return Long.parseLong(s.trim());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static Double lerDouble(String s) {
+        try {
+            return Double.parseDouble(s.trim().replace(',', '.'));
         } catch (Exception e) {
             return null;
         }

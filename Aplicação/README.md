@@ -30,6 +30,15 @@ da AVL (tem barra de progresso).
 - **Exibição ordenada**: ordena os registros por ID com o MergeSort e exibe
   na tabela; também dá pra exibir pelo caminhamento em-ordem da árvore, que
   já sai ordenado.
+- **Análises**: consultas sobre os dados usando a AVL - maior emissão de uma
+  data, data de maior emissão de um comprimento de onda, primeira/última
+  data do banco (descida pelas bordas da árvore, já que os IDs do csv
+  crescem em ordem cronológica), menor/maior comprimento de onda, média de
+  emissão num intervalo de comprimento de onda e gráfico do espectro da data
+  (comprimento de onda em nm × irradiância em W/m²/nm, desenhado em Swing).
+  Cada consulta gera um registro de execução com a operação, os parâmetros,
+  o resultado, as comparações, o tempo, o nível onde o resultado estava e a
+  altura atual da AVL.
 
 ## Decisões (com base nos benchmarks)
 
@@ -69,7 +78,9 @@ da AVL (tem barra de progresso).
 
 ## Arquivos
 
-- `AplicacaoFinal.java` - janela e abas (buscar/inserir/remover/exibição)
+- `AplicacaoFinal.java` - janela e abas (buscar/inserir/remover/exibição/análises)
 - `TArvoreAVL.java` - AVL do NA04 + remoção da ABB do NA03 + caminhamentos
 - `Ordenacao.java` - mergesort do benchmark pra Registro[]
 - `Registro.java` - registro do csv (chave = ID da primeira coluna)
+- `Analises.java` - consultas da aba Análises com os registros de execução
+- `GraficoEspectro.java` - gráfico do espectro desenhado com Graphics2D
