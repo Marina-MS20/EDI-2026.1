@@ -1,0 +1,475 @@
+================================================================================
+RELATÓRIO DE ANÁLISE DE ALGORITMOS DE ORDENAÇÃO
+================================================================================
+
+Data/Hora: 10/07/2026 14:41:59
+Diretório de entrada: output_ordenacao
+
+ESCALAS GLOBAIS
+--------------------------------------------------------------------------------
+Máximo de Comparações: 9,443,433,735
+Máximo de Cópias:      18,886,867,470
+Máximo de Tempo (ms):  24,885.638300
+
+ALGORITMOS ANALISADOS
+--------------------------------------------------------------------------------
+  • Bubble Sort
+  • Selection Sort
+  • Insertion Sort
+  • Shell Sort
+  • Heap Sort
+  • Merge Sort
+  • Quick Sort
+
+DISTRIBUIÇÕES ANALISADAS
+--------------------------------------------------------------------------------
+  • Aleatório
+  • Crescente
+  • Decrescente
+  • Quase crescente
+  • Quase decrescente
+
+ESTATÍSTICAS DETALHADAS
+--------------------------------------------------------------------------------
+
+
+BUBBLE SORT
+================================================================================
+
+  Aleatório:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        45
+    Comparações - Médio:      538,725,169
+    Comparações - Máx:        9,443,433,735
+    Cópias - Mín:             42
+    Cópias - Médio:           538,902,291
+    Cópias - Máx:             9,469,197,316
+    Tempo (ms) - Mín:         0.002800
+    Tempo (ms) - Médio:       1,392.201695
+    Tempo (ms) - Máx:         24,885.638300
+
+  Crescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        45
+    Comparações - Médio:      538,725,169
+    Comparações - Máx:        9,443,433,735
+    Cópias - Mín:             0
+    Cópias - Médio:           0
+    Cópias - Máx:             0
+    Tempo (ms) - Mín:         0.001500
+    Tempo (ms) - Médio:       206.997095
+    Tempo (ms) - Máx:         3,608.912700
+
+  Decrescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        45
+    Comparações - Médio:      538,725,169
+    Comparações - Máx:        9,443,433,735
+    Cópias - Mín:             90
+    Cópias - Médio:           1,077,450,338
+    Cópias - Máx:             18,886,867,470
+    Tempo (ms) - Mín:         0.001900
+    Tempo (ms) - Médio:       673.434252
+    Tempo (ms) - Máx:         11,744.257900
+
+  Quase crescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        45
+    Comparações - Médio:      538,725,169
+    Comparações - Máx:        9,443,433,735
+    Cópias - Mín:             16
+    Cópias - Médio:           287,838,313
+    Cópias - Máx:             5,061,210,114
+    Tempo (ms) - Mín:         0.001800
+    Tempo (ms) - Médio:       872.429471
+    Tempo (ms) - Máx:         15,760.127700
+
+  Quase decrescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        45
+    Comparações - Médio:      538,725,169
+    Comparações - Máx:        9,443,433,735
+    Cópias - Mín:             66
+    Cópias - Médio:           789,640,823
+    Cópias - Máx:             13,856,183,656
+    Tempo (ms) - Mín:         0.001800
+    Tempo (ms) - Médio:       1,136.809371
+    Tempo (ms) - Máx:         20,613.488600
+
+SELECTION SORT
+================================================================================
+
+  Aleatório:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        45
+    Comparações - Médio:      538,725,169
+    Comparações - Máx:        9,443,433,735
+    Cópias - Mín:             18
+    Cópias - Médio:           29,930
+    Cópias - Máx:             274,858
+    Tempo (ms) - Mín:         0.002100
+    Tempo (ms) - Médio:       214.250592
+    Tempo (ms) - Máx:         3,730.972600
+
+  Crescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        45
+    Comparações - Médio:      538,725,169
+    Comparações - Máx:        9,443,433,735
+    Cópias - Mín:             18
+    Cópias - Médio:           29,930
+    Cópias - Máx:             274,858
+    Tempo (ms) - Mín:         0.001500
+    Tempo (ms) - Médio:       212.762989
+    Tempo (ms) - Máx:         3,762.481100
+
+  Decrescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        45
+    Comparações - Médio:      538,725,169
+    Comparações - Máx:        9,443,433,735
+    Cópias - Mín:             18
+    Cópias - Médio:           29,930
+    Cópias - Máx:             274,858
+    Tempo (ms) - Mín:         0.001800
+    Tempo (ms) - Médio:       223.857550
+    Tempo (ms) - Máx:         3,930.675400
+
+  Quase crescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        45
+    Comparações - Médio:      538,725,169
+    Comparações - Máx:        9,443,433,735
+    Cópias - Mín:             18
+    Cópias - Médio:           29,930
+    Cópias - Máx:             274,858
+    Tempo (ms) - Mín:         0.001500
+    Tempo (ms) - Médio:       213.519403
+    Tempo (ms) - Máx:         3,768.114400
+
+  Quase decrescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        45
+    Comparações - Médio:      538,725,169
+    Comparações - Máx:        9,443,433,735
+    Cópias - Mín:             18
+    Cópias - Médio:           29,930
+    Cópias - Máx:             274,858
+    Tempo (ms) - Mín:         0.001800
+    Tempo (ms) - Médio:       213.473958
+    Tempo (ms) - Máx:         3,753.524200
+
+INSERTION SORT
+================================================================================
+
+  Aleatório:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        29
+    Comparações - Médio:      269,466,104
+    Comparações - Máx:        4,734,736,078
+    Cópias - Mín:             30
+    Cópias - Médio:           269,466,111
+    Cópias - Máx:             4,734,736,087
+    Tempo (ms) - Mín:         0.001500
+    Tempo (ms) - Médio:       154.946726
+    Tempo (ms) - Máx:         3,053.242400
+
+  Crescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        9
+    Comparações - Médio:      14,965
+    Comparações - Máx:        137,429
+    Cópias - Mín:             9
+    Cópias - Médio:           14,965
+    Cópias - Máx:             137,429
+    Tempo (ms) - Mín:         0.000400
+    Tempo (ms) - Médio:       0.036051
+    Tempo (ms) - Máx:         0.327700
+
+  Decrescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        45
+    Comparações - Médio:      538,725,169
+    Comparações - Máx:        9,443,433,735
+    Cópias - Mín:             54
+    Cópias - Médio:           538,740,134
+    Cópias - Máx:             9,443,571,164
+    Tempo (ms) - Mín:         0.001900
+    Tempo (ms) - Médio:       319.770021
+    Tempo (ms) - Máx:         8,004.722800
+
+  Quase crescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        17
+    Comparações - Médio:      143,934,121
+    Comparações - Máx:        2,530,742,486
+    Cópias - Mín:             19
+    Cópias - Médio:           143,934,122
+    Cópias - Máx:             2,530,742,486
+    Tempo (ms) - Mín:         0.001000
+    Tempo (ms) - Médio:       78.019477
+    Tempo (ms) - Máx:         1,405.905700
+
+  Quase decrescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        40
+    Comparações - Médio:      394,835,369
+    Comparações - Máx:        6,928,229,249
+    Cópias - Mín:             42
+    Cópias - Médio:           394,835,377
+    Cópias - Máx:             6,928,229,257
+    Tempo (ms) - Mín:         0.001600
+    Tempo (ms) - Médio:       217.803324
+    Tempo (ms) - Máx:         3,728.120800
+
+SHELL SORT
+================================================================================
+
+  Aleatório:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        27
+    Comparações - Médio:      518,772
+    Comparações - Máx:        5,752,706
+    Cópias - Mín:             30
+    Cópias - Médio:           525,276
+    Cópias - Máx:             5,813,208
+    Tempo (ms) - Mín:         0.002600
+    Tempo (ms) - Médio:       1.567213
+    Tempo (ms) - Máx:         16.211000
+
+  Crescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        15
+    Comparações - Médio:      136,543
+    Comparações - Máx:        1,378,876
+    Cópias - Mín:             15
+    Cópias - Médio:           136,543
+    Cópias - Máx:             1,378,876
+    Tempo (ms) - Mín:         0.001000
+    Tempo (ms) - Médio:       0.249453
+    Tempo (ms) - Máx:         2.466400
+
+  Decrescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        21
+    Comparações - Médio:      213,517
+    Comparações - Máx:        2,244,458
+    Cópias - Mín:             28
+    Cópias - Médio:           223,357
+    Cópias - Máx:             2,330,829
+    Tempo (ms) - Mín:         0.001500
+    Tempo (ms) - Médio:       0.423918
+    Tempo (ms) - Máx:         4.228600
+
+  Quase crescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        23
+    Comparações - Médio:      484,473
+    Comparações - Máx:        5,253,592
+    Cópias - Mín:             26
+    Cópias - Médio:           487,743
+    Cópias - Máx:             5,284,049
+    Tempo (ms) - Mín:         0.001300
+    Tempo (ms) - Médio:       1.509139
+    Tempo (ms) - Máx:         15.256400
+
+  Quase decrescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        24
+    Comparações - Médio:      488,673
+    Comparações - Máx:        5,236,095
+    Cópias - Mín:             30
+    Cópias - Médio:           496,984
+    Cópias - Máx:             5,310,984
+    Tempo (ms) - Mín:         0.001500
+    Tempo (ms) - Médio:       1.452132
+    Tempo (ms) - Máx:         15.020000
+
+HEAP SORT
+================================================================================
+
+  Aleatório:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        40
+    Comparações - Médio:      424,178
+    Comparações - Máx:        4,268,892
+    Cópias - Mín:             58
+    Cópias - Médio:           443,681
+    Cópias - Máx:             4,447,592
+    Tempo (ms) - Mín:         0.003000
+    Tempo (ms) - Médio:       1.558379
+    Tempo (ms) - Máx:         14.751600
+
+  Crescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        41
+    Comparações - Médio:      437,485
+    Comparações - Máx:        4,389,407
+    Cópias - Mín:             60
+    Cópias - Médio:           465,437
+    Cópias - Máx:             4,651,496
+    Tempo (ms) - Mín:         0.001800
+    Tempo (ms) - Médio:       0.862326
+    Tempo (ms) - Máx:         8.407900
+
+  Decrescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        35
+    Comparações - Médio:      411,541
+    Comparações - Máx:        4,163,645
+    Cópias - Mín:             42
+    Cópias - Médio:           422,039
+    Cópias - Máx:             4,266,974
+    Tempo (ms) - Mín:         0.001400
+    Tempo (ms) - Médio:       0.915927
+    Tempo (ms) - Máx:         9.031200
+
+  Quase crescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        40
+    Comparações - Médio:      430,848
+    Comparações - Máx:        4,329,317
+    Cópias - Mín:             58
+    Cópias - Médio:           455,102
+    Cópias - Máx:             4,551,926
+    Tempo (ms) - Mín:         0.001600
+    Tempo (ms) - Médio:       1.232605
+    Tempo (ms) - Máx:         12.139700
+
+  Quase decrescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        36
+    Comparações - Médio:      418,464
+    Comparações - Máx:        4,218,630
+    Cópias - Mín:             46
+    Cópias - Médio:           433,423
+    Cópias - Máx:             4,355,940
+    Tempo (ms) - Mín:         0.001400
+    Tempo (ms) - Médio:       1.294021
+    Tempo (ms) - Máx:         12.506300
+
+MERGE SORT
+================================================================================
+
+  Aleatório:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        22
+    Comparações - Médio:      216,191
+    Comparações - Máx:        2,173,026
+    Cópias - Mín:             68
+    Cópias - Médio:           471,373
+    Cópias - Máx:             4,698,052
+    Tempo (ms) - Mín:         0.003300
+    Tempo (ms) - Médio:       1.381546
+    Tempo (ms) - Máx:         14.064800
+
+  Crescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        19
+    Comparações - Médio:      120,342
+    Comparações - Máx:        1,189,447
+    Cópias - Mín:             68
+    Cópias - Médio:           471,373
+    Cópias - Máx:             4,698,052
+    Tempo (ms) - Mín:         0.001700
+    Tempo (ms) - Médio:       0.500707
+    Tempo (ms) - Máx:         4.514400
+
+  Decrescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        15
+    Comparações - Médio:      115,345
+    Comparações - Máx:        1,159,579
+    Cópias - Mín:             68
+    Cópias - Médio:           471,373
+    Cópias - Máx:             4,698,052
+    Tempo (ms) - Mín:         0.001600
+    Tempo (ms) - Médio:       0.503048
+    Tempo (ms) - Máx:         5.463400
+
+  Quase crescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        24
+    Comparações - Médio:      214,231
+    Comparações - Máx:        2,151,801
+    Cópias - Mín:             68
+    Cópias - Médio:           471,373
+    Cópias - Máx:             4,698,052
+    Tempo (ms) - Mín:         0.001200
+    Tempo (ms) - Médio:       0.994346
+    Tempo (ms) - Máx:         9.582400
+
+  Quase decrescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        21
+    Comparações - Médio:      212,704
+    Comparações - Máx:        2,143,678
+    Cópias - Mín:             68
+    Cópias - Médio:           471,373
+    Cópias - Máx:             4,698,052
+    Tempo (ms) - Mín:         0.001500
+    Tempo (ms) - Médio:       1.018986
+    Tempo (ms) - Máx:         9.388600
+
+QUICK SORT
+================================================================================
+
+  Aleatório:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        41
+    Comparações - Médio:      391,915
+    Comparações - Máx:        4,015,730
+    Cópias - Mín:             22
+    Cópias - Médio:           110,808
+    Cópias - Máx:             1,102,368
+    Tempo (ms) - Mín:         0.004000
+    Tempo (ms) - Médio:       1.132888
+    Tempo (ms) - Máx:         10.673800
+
+  Crescente:
+    Tamanho máximo (n):        15347
+    Comparações - Mín:        54
+    Comparações - Médio:      8,700,890
+    Comparações - Máx:        117,772,877
+    Cópias - Mín:             18
+    Cópias - Médio:           4,323
+    Cópias - Máx:             30,692
+    Tempo (ms) - Mín:         0.001600
+    Tempo (ms) - Médio:       4.063441
+    Tempo (ms) - Máx:         56.081600
+
+  Decrescente:
+    Tamanho máximo (n):        15347
+    Comparações - Mín:        54
+    Comparações - Médio:      8,700,890
+    Comparações - Máx:        117,772,877
+    Cópias - Mín:             18
+    Cópias - Médio:           4,323
+    Cópias - Máx:             30,692
+    Tempo (ms) - Mín:         0.001500
+    Tempo (ms) - Médio:       3.671064
+    Tempo (ms) - Máx:         47.093900
+
+  Quase crescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        43
+    Comparações - Médio:      519,002
+    Comparações - Máx:        5,590,620
+    Cópias - Mín:             18
+    Cópias - Médio:           61,655
+    Cópias - Máx:             601,488
+    Tempo (ms) - Mín:         0.001600
+    Tempo (ms) - Médio:       0.832082
+    Tempo (ms) - Máx:         10.466600
+
+  Quase decrescente:
+    Tamanho máximo (n):        137430
+    Comparações - Mín:        42
+    Comparações - Médio:      440,656
+    Comparações - Máx:        4,827,196
+    Cópias - Mín:             20
+    Cópias - Médio:           104,766
+    Cópias - Máx:             1,056,698
+    Tempo (ms) - Mín:         0.001300
+    Tempo (ms) - Médio:       1.046248
+    Tempo (ms) - Máx:         13.007500
