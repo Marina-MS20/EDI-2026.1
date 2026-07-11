@@ -10,6 +10,9 @@ public class MainOrdenacao {
 
     private static final long BASE_SEED = 42L;
 
+    // quantas ordenações rodar pra cada n - o que vai pro CSV é a média delas
+    private static final int X_ORDENACOES = 5;
+
     private static final double NEAR_PCT = 0.3; // % de trocas pra simular "quase ordenado"
 
     enum Mode { FIXED_STEP, GROWTH_STEP }
@@ -23,7 +26,7 @@ public class MainOrdenacao {
 
     // parâmetros GROWTH_STEP
     private static final int GROWTH_START_N = 10;
-    private static final int GROWTH_MAX_N = 500_000;
+    private static final int GROWTH_MAX_N = 100_000;
     private static final double GROWTH_FACTOR = 1.10;
     private static final double GROWTH_FINE_FACTOR = 1.02;
 
@@ -267,15 +270,29 @@ public class MainOrdenacao {
         String file = combo.key + ".csv";
 
         try {
-            long[] arr = new long[data.size()];
-            for (int i = 0; i < arr.length; i++) arr[i] = data.get(i);
-            Counters c = new Counters();
+            long somaComparisons = 0;
+            long somaCopies = 0;
+            long somaTime = 0;
 
-            long start = System.nanoTime();
-            algo.sort(arr, c);
-            long end = System.nanoTime();
+            for (int run = 0; run < X_ORDENACOES; run++) {
+                // copia nova a cada rodada: depois da primeira ordenação o
+                // array já estaria ordenado e as rodadas seguintes mediriam
+                // outro caso (entrada ordenada) em vez da distribuição original
+                long[] arr = new long[data.size()];
+                for (int i = 0; i < arr.length; i++) arr[i] = data.get(i);
+                Counters c = new Counters();
 
-            write(file, n, c.comparisons, c.copies, end - start);
+                long start = System.nanoTime();
+                algo.sort(arr, c);
+                long end = System.nanoTime();
+
+                somaComparisons += c.comparisons;
+                somaCopies += c.copies;
+                somaTime += (end - start);
+            }
+
+            write(file, n, somaComparisons / X_ORDENACOES,
+                    somaCopies / X_ORDENACOES, somaTime / X_ORDENACOES);
 
             if (phase.equals("COARSE")) lastSuccess.put(combo.key, n);
 
