@@ -16,7 +16,7 @@ FAIL_REPORT = "fail_report.txt"
 os.makedirs(REPORTS_DIR, exist_ok=True)
 
 # ======================================================
-# ESTRUTURAS - ORDEM DAS COLUNAS
+# ESTRUTURAS - ORDEM DAS LINHAS
 # ======================================================
 
 ESTRUTURAS_ORDEM = [
@@ -34,17 +34,6 @@ ESTRUTURAS_ORDEM = [
 
 ESTRUTURAS = {k: v for k, v in ESTRUTURAS_ORDEM}
 FILES = [k for k, _ in ESTRUTURAS_ORDEM]
-
-# ======================================================
-# LINHAS: MÉTRICAS NA ORDEM ESPECIFICADA
-# ======================================================
-
-METRICAS = [
-    ("n_máximo", "N máximo"),
-    ("comp_max", "Comp max"),
-    ("t_ms", "t ms"),
-    ("area_t", "Área t")
-]
 
 # ======================================================
 # CARREGAR CSV
@@ -95,16 +84,15 @@ def calcular_area_abaixo_curva(x, y):
     return area_ms
 
 # ======================================================
-# GERAR TABELA RESUMIDA (FORMATO: MÉTRICAS x ESTRUTURAS)
+# GERAR TABELA RESUMIDA (LINHAS: ESTRUTURAS, COLUNAS: MÉTRICAS)
 # ======================================================
 
 def generate_summary_table():
-    """Gera tabela com métricas nas linhas e estruturas nas colunas"""
+    """Gera tabela com estruturas nas linhas e métricas nas colunas"""
     
-    dados_estruturas = {}
+    summary_data = []
     fail_info = {}
     
-    # Carregar dados de todas as estruturas
     for filename in FILES:
         df, fail_n_values = load_csv(filename)
         
@@ -112,68 +100,40 @@ def generate_summary_table():
             print(f"[AVISO] Sem dados: {filename}")
             continue
         
+        estrutura_nome = ESTRUTURAS.get(filename, filename)
+        
         x = df['n'].values
         y = df['time_ns'].values
         
         n_max = int(df['n'].max()) if 'n' in df.columns else 0
         comparacoes_media = df['comparisons'].mean() if 'comparisons' in df.columns else 0
-        tempo_media = (df['time_ns'].mean() / 1_000_000) if 'time_ns' in df.columns else 0
-        area_abaixo_curva = calcular_area_abaixo_curva(x, y)
         
+        area_abaixo_curva = calcular_area_abaixo_curva(x, y)
+        tempo_media = (df['time_ns'].mean() / 1_000_000) if 'time_ns' in df.columns else 0
+        
+        # Indicador de Stack Overflow
         stack_overflow = "SIM" if fail_n_values else "NÃO"
         primeiro_fail = fail_n_values[0] if fail_n_values else "-"
         
-        # Armazenar dados
-        dados_estruturas[filename] = {
-            'n_máximo': n_max,
-            'comp_max': f"{comparacoes_media:.0f}",
-            't_ms': f"{tempo_media:.6f}",
-            'area_t': f"{area_abaixo_curva:.6f}",
-            'overflow': stack_overflow,
-            'falha_em': primeiro_fail
-        }
+        summary_data.append({
+            'Estrutura': estrutura_nome,
+            'N máximo': n_max,
+            'Comp max': f"{comparacoes_media:.0f}",
+            't ms': f"{tempo_media:.6f}",
+            'Área t': f"{area_abaixo_curva:.6f}",
+            'Overflow': stack_overflow,
+            'Falha em N': primeiro_fail
+        })
         
         if fail_n_values:
             fail_info[filename] = {
-                'estrutura': ESTRUTURAS[filename],
+                'estrutura': estrutura_nome,
                 'fail_points': fail_n_values
             }
         
         print(f"[OK] {filename} - Overflow: {stack_overflow}")
     
-    # Construir DataFrame com métricas nas linhas, estruturas nas colunas
-    table_data = []
-    
-    for metrica_key, metrica_label in METRICAS:
-        row = {'Métrica': metrica_label}
-        
-        for filename, _ in ESTRUTURAS_ORDEM:
-            if filename in dados_estruturas:
-                row[ESTRUTURAS[filename]] = dados_estruturas[filename][metrica_key]
-            else:
-                row[ESTRUTURAS[filename]] = "-"
-        
-        table_data.append(row)
-    
-    # Adicionar linha de Overflow
-    row_overflow = {'Métrica': 'Overflow'}
-    for filename, _ in ESTRUTURAS_ORDEM:
-        if filename in dados_estruturas:
-            row_overflow[ESTRUTURAS[filename]] = dados_estruturas[filename]['overflow']
-        else:
-            row_overflow[ESTRUTURAS[filename]] = "-"
-    table_data.append(row_overflow)
-    
-    # Adicionar linha de Falha em N
-    row_falha = {'Métrica': 'Falha em N'}
-    for filename, _ in ESTRUTURAS_ORDEM:
-        if filename in dados_estruturas:
-            row_falha[ESTRUTURAS[filename]] = dados_estruturas[filename]['falha_em']
-        else:
-            row_falha[ESTRUTURAS[filename]] = "-"
-    table_data.append(row_falha)
-    
-    df_summary = pd.DataFrame(table_data)
+    df_summary = pd.DataFrame(summary_data)
     
     # Salvar TSV
     path_tsv = Path(REPORTS_DIR) / RESULT_FILE
@@ -181,11 +141,11 @@ def generate_summary_table():
     print(f"\n[OK] Tabela salva em TSV: {path_tsv}\n")
     
     # Exibir tabela
-    print("=" * 180)
+    print("=" * 160)
     print("RESUMO - ANÁLISE DE ALGORITMOS DE BUSCA")
-    print("=" * 180)
+    print("=" * 160)
     print(df_summary.to_string(index=False))
-    print("=" * 180)
+    print("=" * 160)
     
     return df_summary, fail_info
 
@@ -226,13 +186,12 @@ def generate_fail_report(fail_info):
 # ======================================================
 
 def main():
-    print("=" * 180)
+    print("=" * 160)
     print("GERADOR DE TABELA RESUMIDA - ALGORITMOS DE BUSCA")
-    print("=" * 180)
+    print("=" * 160)
     print(f"Diretório entrada: {INPUT_DIR}")
     print(f"Diretório saída: {REPORTS_DIR}")
-    print("Formato: Métricas (linhas) × Estruturas (colunas)")
-    print("=" * 180)
+    print("=" * 160)
     print()
     
     # Gerar tabela resumida
@@ -242,9 +201,9 @@ def main():
     print()
     generate_fail_report(fail_info)
     
-    print("\n" + "=" * 180)
+    print("\n" + "=" * 160)
     print("PROCESSAMENTO FINALIZADO")
-    print("=" * 180)
+    print("=" * 160)
 
 if __name__ == "__main__":
     main()

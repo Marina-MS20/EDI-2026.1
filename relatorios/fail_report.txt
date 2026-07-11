@@ -2,7 +2,7 @@
 RELATÓRIO DE FALHAS - STACK OVERFLOW
 ================================================================================
 
-Data/Hora: 11/07/2026 12:02:37
+Data/Hora: 11/07/2026 12:06:40
 Diretório: output
 
 ESTRUTURAS COM STACK OVERFLOW

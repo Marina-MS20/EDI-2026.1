@@ -1,220 +1,110 @@
 
 ==============================
 Arquivo: seq_random.csv
-Metrica: comparisons
-Modelo: Quadratic
-Equacao: y = 7.217377e-09*n² + 4.918376e-01*n + 280.054471
-Derivada: dy/dn = 1.443475e-08*n + 4.918376e-01
+Tempo (ms)
+Modelo: Logarithmic
+Equação: log(y) = 1.192397e+00*ln(n) + -6.631310
+Derivada: d(log y)/dn = 1.192397e+00/n
 n_final: 1981873
-Taxa_variacao_final: 5.20445441e-01
-R2_ajustado: 0.99975784
-RMSE: 2960.83206787
-
-==============================
-Arquivo: seq_random.csv
-Metrica: time_ns
-Modelo: Power
-Equacao: y = 1.731341e+03*n^1.234675
-Derivada: dy/dn = 2.137643e+03*n^(0.234675)
-n_final: 1981873
-Taxa_variacao_final: 6.42245924e+04
-R2_ajustado: 0.99629327
-RMSE: 1122475034.01848841
+Taxa_variação_final: 6.01651750e-07
+R2_ajustado: 0.97360722
+RMSE: 0.69207490
 
 ==============================
 Arquivo: seq_sorted.csv
-Metrica: comparisons
-Modelo: Linear
-Equacao: y = 4.999419e-01*n + 14.293622
-Derivada: dy/dn = 4.999419e-01
+Tempo (ms)
+Modelo: Logarithmic
+Equação: log(y) = 1.068976e+00*ln(n) + -6.002160
+Derivada: d(log y)/dn = 1.068976e+00/n
 n_final: 1981873
-Taxa_variacao_final: 4.99941865e-01
-R2_ajustado: 0.99986659
-RMSE: 2195.83725713
-
-==============================
-Arquivo: seq_sorted.csv
-Metrica: time_ns
-Modelo: Linear
-Equacao: y = 8.861691e+03*n + -50350473.329881
-Derivada: dy/dn = 8.861691e+03
-n_final: 1981873
-Taxa_variacao_final: 8.86169057e+03
-R2_ajustado: 0.99149332
-RMSE: 312093279.38487917
+Taxa_variação_final: 5.39376737e-07
+R2_ajustado: 0.99267986
+RMSE: 0.32364703
 
 ==============================
 Arquivo: seq_reverse.csv
-Metrica: comparisons
-Modelo: Linear
-Equacao: y = 5.000579e-01*n + -14.006667
-Derivada: dy/dn = 5.000579e-01
+Tempo (ms)
+Modelo: Logarithmic
+Equação: log(y) = 1.067132e+00*ln(n) + -5.991131
+Derivada: d(log y)/dn = 1.067132e+00/n
 n_final: 1981873
-Taxa_variacao_final: 5.00057859e-01
-R2_ajustado: 0.99986665
-RMSE: 2195.83880382
-
-==============================
-Arquivo: seq_reverse.csv
-Metrica: time_ns
-Modelo: Quadratic
-Equacao: y = -3.181461e-04*n² + 8.648717e+03*n + -38370323.980507
-Derivada: dy/dn = -6.362923e-04*n + 8.648717e+03
-n_final: 1981873
-Taxa_variacao_final: 7.38766668e+03
-R2_ajustado: 0.99255502
-RMSE: 268580542.57153231
+Taxa_variação_final: 5.38446185e-07
+R2_ajustado: 0.99263923
+RMSE: 0.32399053
 
 ==============================
 Arquivo: bin.csv
-Metrica: comparisons
+Tempo (ms)
 Modelo: Logarithmic
-Equacao: y = 1.413983e+00*ln(n) + -1.182416
-Derivada: dy/dn = 1.413983e+00/n
+Equação: log(y) = 3.737936e-01*ln(n) + -3.644839
+Derivada: d(log y)/dn = 3.737936e-01/n
 n_final: 1981873
-Taxa_variacao_final: 7.13457693e-07
-R2_ajustado: 0.99619390
-RMSE: 0.30815750
-
-==============================
-Arquivo: bin.csv
-Metrica: time_ns
-Modelo: Power
-Equacao: y = 2.284552e+04*n^0.388069
-Derivada: dy/dn = 8.865629e+03*n^(-0.611931)
-n_final: 1981873
-Taxa_variacao_final: 1.24259826e+00
-R2_ajustado: 0.94950626
-RMSE: 366227.18497342
+Taxa_variação_final: 1.88606214e-07
+R2_ajustado: 0.96168007
+RMSE: 0.26300689
 
 ==============================
 Arquivo: abb_random.csv
-Metrica: comparisons
+Tempo (ms)
 Modelo: Logarithmic
-Equacao: y = 1.959632e+00*ln(n) + -2.050720
-Derivada: dy/dn = 1.959632e+00/n
+Equação: log(y) = 4.277641e-01*ln(n) + -4.136354
+Derivada: d(log y)/dn = 4.277641e-01/n
 n_final: 1981873
-Taxa_variacao_final: 9.88777821e-07
-R2_ajustado: 0.99344507
-RMSE: 0.56122574
-
-==============================
-Arquivo: abb_random.csv
-Metrica: time_ns
-Modelo: Power
-Equacao: y = 6.137892e+04*n^0.324482
-Derivada: dy/dn = 1.991633e+04*n^(-0.675518)
-n_final: 1981873
-Taxa_variacao_final: 1.11024418e+00
-R2_ajustado: 0.76182510
-RMSE: 1019025.08511380
+Taxa_variação_final: 2.15838322e-07
+R2_ajustado: 0.96316391
+RMSE: 0.29487279
 
 ==============================
 Arquivo: abb_sorted.csv
-Metrica: comparisons
-Modelo: Quadratic
-Equacao: y = 2.138764e-07*n² + 4.954706e-01*n + 3.644860
-Derivada: dy/dn = 4.277529e-07*n + 4.954706e-01
+Tempo (ms)
+Modelo: Logarithmic
+Equação: log(y) = 1.054819e+00*ln(n) + -5.062912
+Derivada: d(log y)/dn = 1.054819e+00/n
 n_final: 24717
-Taxa_variacao_final: 5.06043418e-01
-R2_ajustado: 0.99992134
-RMSE: 24.47784738
-
-==============================
-Arquivo: abb_sorted.csv
-Metrica: time_ns
-Modelo: Linear
-Equacao: y = 1.002086e+04*n + -129791.306948
-Derivada: dy/dn = 1.002086e+04
-n_final: 24717
-Taxa_variacao_final: 1.00208643e+04
-R2_ajustado: 0.99720152
-RMSE: 2951634.31225706
+Taxa_variação_final: 4.26758349e-05
+R2_ajustado: 0.99666800
+RMSE: 0.13793062
 
 ==============================
 Arquivo: abb_reverse.csv
-Metrica: comparisons
-Modelo: Quadratic
-Equacao: y = -2.474734e-07*n² + 5.050710e-01*n + -3.615002
-Derivada: dy/dn = -4.949467e-07*n + 5.050710e-01
+Tempo (ms)
+Modelo: Logarithmic
+Equação: log(y) = 1.135611e+00*ln(n) + -5.097145
+Derivada: d(log y)/dn = 1.135611e+00/n
 n_final: 20427
-Taxa_variacao_final: 4.94960750e-01
-R2_ajustado: 0.99990303
-RMSE: 22.71219840
-
-==============================
-Arquivo: abb_reverse.csv
-Metrica: time_ns
-Modelo: Power
-Equacao: y = 1.480773e+04*n^1.032256
-Derivada: dy/dn = 1.528537e+04*n^(0.032256)
-n_final: 20427
-Taxa_variacao_final: 2.10525685e+04
-R2_ajustado: 0.99520661
-RMSE: 6514604.62012072
+Taxa_variação_final: 5.55936346e-05
+R2_ajustado: 0.99754966
+RMSE: 0.12419433
 
 ==============================
 Arquivo: avl_random.csv
-Metrica: comparisons
+Tempo (ms)
 Modelo: Logarithmic
-Equacao: y = 1.446721e+00*ln(n) + -1.216991
-Derivada: dy/dn = 1.446721e+00/n
+Equação: log(y) = 3.929156e-01*ln(n) + -4.251379
+Derivada: d(log y)/dn = 3.929156e-01/n
 n_final: 1981873
-Taxa_variacao_final: 7.29976646e-07
-R2_ajustado: 0.99630685
-RMSE: 0.31056130
-
-==============================
-Arquivo: avl_random.csv
-Metrica: time_ns
-Modelo: Power
-Equacao: y = 2.444898e+04*n^0.346782
-Derivada: dy/dn = 8.478477e+03*n^(-0.653218)
-n_final: 1981873
-Taxa_variacao_final: 6.53066743e-01
-R2_ajustado: 0.91100765
-RMSE: 298724.19821743
+Taxa_variação_final: 1.98254691e-07
+R2_ajustado: 0.96875574
+RMSE: 0.24873751
 
 ==============================
 Arquivo: avl_sorted.csv
-Metrica: comparisons
+Tempo (ms)
 Modelo: Logarithmic
-Equacao: y = 1.414096e+00*ln(n) + -1.198869
-Derivada: dy/dn = 1.414096e+00/n
+Equação: log(y) = 4.206983e-01*ln(n) + -4.390239
+Derivada: d(log y)/dn = 4.206983e-01/n
 n_final: 1981873
-Taxa_variacao_final: 7.13514722e-07
-R2_ajustado: 0.99613016
-RMSE: 0.31076161
-
-==============================
-Arquivo: avl_sorted.csv
-Metrica: time_ns
-Modelo: Power
-Equacao: y = 4.065892e+04*n^0.319184
-Derivada: dy/dn = 1.297770e+04*n^(-0.680816)
-n_final: 1981873
-Taxa_variacao_final: 6.69962368e-01
-R2_ajustado: 0.98230272
-RMSE: 147179.29763424
+Taxa_variação_final: 2.12273070e-07
+R2_ajustado: 0.96842032
+RMSE: 0.26779682
 
 ==============================
 Arquivo: avl_reverse.csv
-Metrica: comparisons
+Tempo (ms)
 Modelo: Logarithmic
-Equacao: y = 1.415736e+00*ln(n) + -1.204888
-Derivada: dy/dn = 1.415736e+00/n
+Equação: log(y) = 4.168781e-01*ln(n) + -4.361078
+Derivada: d(log y)/dn = 4.168781e-01/n
 n_final: 1981873
-Taxa_variacao_final: 7.14342256e-07
-R2_ajustado: 0.99611374
-RMSE: 0.31178381
-
-==============================
-Arquivo: avl_reverse.csv
-Metrica: time_ns
-Modelo: Power
-Equacao: y = 4.693332e+04*n^0.305840
-Derivada: dy/dn = 1.435410e+04*n^(-0.694160)
-n_final: 1981873
-Taxa_variacao_final: 6.10661221e-01
-R2_ajustado: 0.96780443
-RMSE: 192060.67774217
+Taxa_variação_final: 2.10345526e-07
+R2_ajustado: 0.96541024
+RMSE: 0.27814982

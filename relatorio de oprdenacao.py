@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 from pathlib import Path
@@ -42,10 +43,10 @@ FIGSIZE = (18, 6)
 DPI = 300
 
 # ============================================================
-# ALGORITMOS
+# ESTRUTURAS - ORDEM DAS LINHAS
 # ============================================================
 
-ALGORITHMS = [
+ESTRUTURAS_ORDEM = [
     ("bubblesort", "Bubble Sort"),
     ("selectionsort", "Selection Sort"),
     ("insertionsort", "Insertion Sort"),
@@ -54,6 +55,9 @@ ALGORITHMS = [
     ("mergesort", "Merge Sort"),
     ("quicksort", "Quick Sort"),
 ]
+
+ESTRUTURAS = {k: v for k, v in ESTRUTURAS_ORDEM}
+FILES = [k for k, _ in ESTRUTURAS_ORDEM]
 
 # ============================================================
 # DISTRIBUIÇÕES
@@ -96,11 +100,14 @@ def load_csv(filename):
     path = Path(INPUT_DIR) / filename
 
     if not path.exists():
-        print(f"[AVISO] Arquivo não encontrado: {filename}")
-        return None
+        return None, []
 
     try:
         df = pd.read_csv(path)
+        
+        # Registrar linhas com FAIL
+        fail_rows = df[df.isin(["FAIL"]).any(axis=1)]
+        fail_n_values = fail_rows['n'].tolist() if not fail_rows.empty else []
 
         for c in df.columns:
             df = df[df[c] != "FAIL"]
@@ -112,11 +119,27 @@ def load_csv(filename):
             df["time_ms"] = df["time_ns"] / 1e6
             df = df.drop(columns=["time_ns"])
 
-        return df if not df.empty else None
+        return (df if not df.empty else None), fail_n_values
 
     except Exception as e:
         print(f"Erro lendo {filename}: {e}")
-        return None
+        return None, []
+
+# ============================================================
+# CALCULA ÁREA ABAIXO DA CURVA
+# ============================================================
+
+def calcular_area_abaixo_curva(x, y):
+    """
+    Calcula a área abaixo da curva usando a regra dos trapézios.
+    """
+    indices = np.argsort(x)
+    x_sorted = x[indices]
+    y_sorted = y[indices]
+    
+    area = np.trapezoid(y_sorted, x_sorted)
+    
+    return area
 
 # ============================================================
 # CALCULA ESCALAS
@@ -129,10 +152,10 @@ def calculate_global_limits():
     print("CALCULANDO ESCALAS GLOBAIS")
     print("=" * 70)
 
-    for algorithm, _ in ALGORITHMS:
+    for algorithm in FILES:
         for dist, _, _ in DISTRIBUTIONS:
             filename = f"{algorithm}_{dist}.csv"
-            df = load_csv(filename)
+            df, _ = load_csv(filename)
 
             if df is None:
                 continue
@@ -157,10 +180,11 @@ def generate_statistics():
     """Gera estatísticas de todos os algoritmos e distribuições"""
     stats_list = []
     
-    for algorithm, algo_name in ALGORITHMS:
+    for algorithm in FILES:
+        algo_name = ESTRUTURAS[algorithm]
         for dist, dist_name, _ in DISTRIBUTIONS:
             filename = f"{algorithm}_{dist}.csv"
-            df = load_csv(filename)
+            df, _ = load_csv(filename)
             
             if df is None:
                 continue
@@ -184,15 +208,14 @@ def generate_statistics():
     return pd.DataFrame(stats_list)
 
 # ============================================================
-# SALVA TABELA EM EXCEL (TSV)
+# SALVA TABELA EM TSV
 # ============================================================
 
-def save_table_excel(df, filename):
-    """Salva tabela em formato TSV (compatível com Excel copy-paste)"""
+def save_table_tsv(df, filename):
+    """Salva tabela em formato TSV"""
     os.makedirs(REPORTS_DIR, exist_ok=True)
     path = Path(REPORTS_DIR) / filename
     
-    # Salva em TSV (Tab-Separated Values) para fácil cópia no Excel
     df.to_csv(path, sep='\t', index=False, encoding='utf-8')
     print(f"[OK] Tabela salva em TSV: {path}")
 
@@ -200,7 +223,7 @@ def save_table_excel(df, filename):
 # GERA RELATÓRIO EM TEXTO
 # ============================================================
 
-def generate_text_report():
+def generate_text_report(fail_info):
     """Gera relatório em arquivo TXT"""
     os.makedirs(REPORTS_DIR, exist_ok=True)
     
@@ -222,8 +245,8 @@ def generate_text_report():
         
         f.write("ALGORITMOS ANALISADOS\n")
         f.write("-" * 80 + "\n")
-        for algorithm, algo_name in ALGORITHMS:
-            f.write(f"  • {algo_name}\n")
+        for algorithm in FILES:
+            f.write(f"  • {ESTRUTURAS[algorithm]}\n")
         f.write("\n")
         
         f.write("DISTRIBUIÇÕES ANALISADAS\n")
@@ -232,17 +255,27 @@ def generate_text_report():
             f.write(f"  • {dist_name}\n")
         f.write("\n")
         
-        f.write("ESTATÍSTICAS DETALHADAS\n")
+        if fail_info:
+            f.write("FALHAS DETECTADAS\n")
+            f.write("-" * 80 + "\n")
+            for filename, info in fail_info.items():
+                f.write(f"\n{info['estrutura']}:\n")
+                f.write(f"  Falhas detectadas em n = {info['fail_points']}\n")
+                f.write(f"  Primeiro ponto de falha: {info['fail_points'][0]}\n")
+                f.write(f"  Total de pontos com falha: {len(info['fail_points'])}\n")
+        
+        f.write("\n\nESTATÍSTICAS DETALHADAS\n")
         f.write("-" * 80 + "\n\n")
         
         # Gera estatísticas por algoritmo
-        for algorithm, algo_name in ALGORITHMS:
+        for algorithm in FILES:
+            algo_name = ESTRUTURAS[algorithm]
             f.write(f"\n{algo_name.upper()}\n")
             f.write("=" * 80 + "\n")
             
             for dist, dist_name, _ in DISTRIBUTIONS:
                 filename = f"{algorithm}_{dist}.csv"
-                df = load_csv(filename)
+                df, _ = load_csv(filename)
                 
                 if df is None:
                     f.write(f"\n  {dist_name}: [Sem dados]\n")
@@ -265,6 +298,11 @@ def generate_text_report():
                     f.write(f"    Tempo (ms) - Mín:         {df['time_ms'].min():,.6f}\n")
                     f.write(f"    Tempo (ms) - Médio:       {df['time_ms'].mean():,.6f}\n")
                     f.write(f"    Tempo (ms) - Máx:         {df['time_ms'].max():,.6f}\n")
+                    
+                    # Calcula área abaixo da curva
+                    if 'n' in df.columns:
+                        area = calcular_area_abaixo_curva(df['n'].values, df['time_ms'].values)
+                        f.write(f"    Área tempo (ms):          {area:,.6f}\n")
     
     print(f"[OK] Relatório TXT salvo: {Path(REPORTS_DIR) / 'relatorio.txt'}")
 
@@ -273,29 +311,52 @@ def generate_text_report():
 # ============================================================
 
 def generate_summary_table():
-    """Gera tabela resumida comparativa entre algoritmos"""
+    """Gera tabela resumida com todas as combinações de distribuições e área"""
     summary_data = []
+    fail_info = {}
     
-    for algorithm, algo_name in ALGORITHMS:
-        # Pega dados do primeiro caso (aleatório)
-        filename = f"{algorithm}_random.csv"
-        df = load_csv(filename)
+    for algorithm in FILES:
+        algo_name = ESTRUTURAS[algorithm]
         
-        if df is None:
-            continue
-        
-        summary_data.append({
-            'Algoritmo': algo_name,
-            'n_máximo': int(df['n'].max()) if 'n' in df.columns else 0,
-            'Comparações_média': f"{df['comparisons'].mean():.0f}" if 'comparisons' in df.columns else "N/A",
-            'Cópias_média': f"{df['copies'].mean():.0f}" if 'copies' in df.columns else "N/A",
-            'Tempo_médio_ms': f"{df['time_ms'].mean():.6f}" if 'time_ms' in df.columns else "N/A",
-        })
+        for dist, dist_name, _ in DISTRIBUTIONS:
+            filename = f"{algorithm}_{dist}.csv"
+            df, fail_n_values = load_csv(filename)
+            
+            if df is None:
+                continue
+            
+            # Calcula área abaixo da curva para tempo
+            area_tempo = calcular_area_abaixo_curva(df['n'].values, df['time_ms'].values)
+            
+            # Indicador de Stack Overflow
+            stack_overflow = "SIM" if fail_n_values else "NÃO"
+            primeiro_fail = fail_n_values[0] if fail_n_values else "-"
+            
+            summary_data.append({
+                'Algoritmo': algo_name,
+                'Distribuição': dist_name,
+                'n_máximo': int(df['n'].max()) if 'n' in df.columns else 0,
+                'Comparações_média': f"{df['comparisons'].mean():.0f}" if 'comparisons' in df.columns else "N/A",
+                'Cópias_média': f"{df['copies'].mean():.0f}" if 'copies' in df.columns else "N/A",
+                'Tempo_médio_ms': f"{df['time_ms'].mean():.6f}" if 'time_ms' in df.columns else "N/A",
+                'Área_tempo': f"{area_tempo:.6f}",
+                'Overflow': stack_overflow,
+                'Falha_em_N': primeiro_fail
+            })
+            
+            if fail_n_values:
+                fail_key = f"{algorithm}_{dist}"
+                fail_info[fail_key] = {
+                    'estrutura': f"{algo_name} ({dist_name})",
+                    'fail_points': fail_n_values
+                }
+            
+            print(f"[OK] {algorithm} ({dist_name}) - Overflow: {stack_overflow}")
     
     df_summary = pd.DataFrame(summary_data)
-    save_table_excel(df_summary, "resumo_algoritmos.tsv")
+    save_table_tsv(df_summary, "resumo_algoritmos.tsv")
     
-    return df_summary
+    return df_summary, fail_info
 
 # ============================================================
 # CRIA FIGURA
@@ -360,7 +421,7 @@ def plot_algorithm(algorithm, title, output_dir, y_max_scale):
 
     for dist, label, color in DISTRIBUTIONS:
         filename = f"{algorithm}_{dist}.csv"
-        df = load_csv(filename)
+        df, _ = load_csv(filename)
 
         if df is not None:
             datasets.append((df, label, color))
@@ -442,15 +503,21 @@ def main():
     print("# GERANDO RELATÓRIOS E TABELAS")
     print("#" * 70)
     
+    print("\n[Processando] Gerando tabela resumida...")
+    df_summary, fail_info = generate_summary_table()
+    
     print("\n[Processando] Gerando estatísticas...")
     stats_df = generate_statistics()
-    save_table_excel(stats_df, "estatisticas_completas.tsv")
-    
-    print("[Processando] Gerando tabela resumida...")
-    generate_summary_table()
+    save_table_tsv(stats_df, "estatisticas_completas.tsv")
     
     print("[Processando] Gerando relatório TXT...")
-    generate_text_report()
+    generate_text_report(fail_info)
+    
+    print("\n" + "=" * 160)
+    print("RESUMO - ANÁLISE DE ALGORITMOS DE ORDENAÇÃO")
+    print("=" * 160)
+    print(df_summary.to_string(index=False))
+    print("=" * 160)
 
     # Gera a versão com escala automática global
     if GENERATE_GERAL:
@@ -459,7 +526,8 @@ def main():
         print(f"# ESCALA AUTOMÁTICA GLOBAL -> {GERAL_OUTPUT_DIR}")
         print("#" * 70)
 
-        for algorithm, title in ALGORITHMS:
+        for algorithm in FILES:
+            title = ESTRUTURAS[algorithm]
             plot_algorithm(algorithm, title, GERAL_OUTPUT_DIR, "global")
 
     # Gera a versão com escala normal
@@ -469,7 +537,8 @@ def main():
         print(f"# ESCALA NORMAL -> {NORMAL_OUTPUT_DIR}")
         print("#" * 70)
 
-        for algorithm, title in ALGORITHMS:
+        for algorithm in FILES:
+            title = ESTRUTURAS[algorithm]
             plot_algorithm(algorithm, title, NORMAL_OUTPUT_DIR, None)
 
     print()
