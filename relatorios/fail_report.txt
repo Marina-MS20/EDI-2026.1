@@ -1,0 +1,20 @@
+================================================================================
+RELATÓRIO DE FALHAS - STACK OVERFLOW
+================================================================================
+
+Data/Hora: 11/07/2026 12:02:37
+Diretório: output
+
+ESTRUTURAS COM STACK OVERFLOW
+--------------------------------------------------------------------------------
+
+ABB Ord.:
+  Falhas detectadas em n = [27189, 25211]
+  Primeiro ponto de falha: 27189
+  Total de pontos com falha: 2
+
+ABB Inv.:
+  Falhas detectadas em n = [22470, 20836]
+  Primeiro ponto de falha: 22470
+  Total de pontos com falha: 2
+

@@ -1,7 +1,7 @@
 import java.io.*;
 import java.util.*;
 
-public class MainBusca {
+public class MainBusca_avl_resolvida {
 
     private static final String CSV_FILE = "solarradiation.csv";
     private static final int TEST_SIZE = 2000;
@@ -43,22 +43,15 @@ public class MainBusca {
     private static final int FIXED_FINE_STEP = Math.max(FIXED_STEP / 10, 1000);
 
     // ---- parâmetros do modo novo (GROWTH_STEP): incremento multiplicativo ----
-    // GROWTH_MAX_N reaproveita o mesmo teto do modo fixo (7.000.000) para
+    // GROWTH_MAX_N reaproveita o mesmo teto do modo fixo (200.000) para
     // explorar a mesma faixa; ajuste se quiser outro teto.
     private static final int GROWTH_START_N = 10;
     private static final int GROWTH_MAX_N = FIXED_MAX_N;
     private static final double GROWTH_FACTOR = 1.10;
     private static final double GROWTH_FINE_FACTOR = 1.02;
 
-    // teto separado para a AVL: o balanco() recalcula as alturas
-    // percorrendo as subárvores inteiras a cada inserção (O(n) por inserção,
-    // O(n²) no total) — medido ~28s para construir com n=100.000. Acima disso
-    // a construção fica inviável para o benchmark.
-    private static final int AVL_MAX_N = 100_000;
-
     static Map<String, BufferedWriter> writers = new HashMap<>();
 
-    static Set<String> activeABB = new HashSet<>();
     static Set<String> activeAVL = new HashSet<>();
 
     // n onde cada estrutura estourou na fase coarse (o "ponto de falha" bruto)
@@ -77,22 +70,9 @@ public class MainBusca {
         List<Long> dataset = loadIds(CSV_FILE);
         log("Dataset carregado: " + dataset.size() + " registros.");
 
-        init("seq_random.csv");
-        init("seq_sorted.csv");
-        init("seq_reverse.csv");
-        init("bin.csv");
-
-        init("abb_random.csv");
-        init("abb_sorted.csv");
-        init("abb_reverse.csv");
-
         init("avl_random.csv");
         init("avl_sorted.csv");
         init("avl_reverse.csv");
-
-        activeABB.add("abb_random");
-        activeABB.add("abb_sorted");
-        activeABB.add("abb_reverse");
 
         activeAVL.add("avl_random");
         activeAVL.add("avl_sorted");
@@ -118,31 +98,14 @@ public class MainBusca {
 
                 Variants v = gerarVariantes(dataset, n, TEST_SIZE);
 
-                write("seq_random.csv", n, benchmarkSequential(v.random, v.testSet));
-                write("seq_sorted.csv", n, benchmarkSequential(v.sorted, v.testSet));
-                write("seq_reverse.csv", n, benchmarkSequential(v.reverse, v.testSet));
-                write("bin.csv", n, benchmarkBinary(v.sorted, v.testSet));
+                if (activeAVL.contains("avl_random"))
+                    safeRunAVL("avl_random.csv", "avl_random", n, v.random, v.testSet, report);
 
-                if (activeABB.contains("abb_random"))
-                    safeRunABB("abb_random.csv", "abb_random", n, v.random, v.testSet, report);
+                if (activeAVL.contains("avl_sorted"))
+                    safeRunAVL("avl_sorted.csv", "avl_sorted", n, v.sorted, v.testSet, report);
 
-                if (activeABB.contains("abb_sorted"))
-                    safeRunABB("abb_sorted.csv", "abb_sorted", n, v.sorted, v.testSet, report);
-
-                if (activeABB.contains("abb_reverse"))
-                    safeRunABB("abb_reverse.csv", "abb_reverse", n, v.reverse, v.testSet, report);
-
-                // AVL tem teto próprio: construção O(n²) (ver AVL_MAX_N)
-                if (n <= AVL_MAX_N) {
-                    if (activeAVL.contains("avl_random"))
-                        safeRunAVL("avl_random.csv", "avl_random", n, v.random, v.testSet, report);
-
-                    if (activeAVL.contains("avl_sorted"))
-                        safeRunAVL("avl_sorted.csv", "avl_sorted", n, v.sorted, v.testSet, report);
-
-                    if (activeAVL.contains("avl_reverse"))
-                        safeRunAVL("avl_reverse.csv", "avl_reverse", n, v.reverse, v.testSet, report);
-                }
+                if (activeAVL.contains("avl_reverse"))
+                    safeRunAVL("avl_reverse.csv", "avl_reverse", n, v.reverse, v.testSet, report);
             }
 
             log(String.format("[COARSE 100.0%%] fase coarse concluída."));
@@ -184,13 +147,8 @@ public class MainBusca {
                             : structure.endsWith("sorted") ? v.sorted
                             : v.reverse;
 
-                    boolean estourouDeNovo;
-
-                    if (structure.startsWith("abb")) {
-                        estourouDeNovo = !safeRunABB(structure + ".csv", structure, n, data, v.testSet, report, "FINE");
-                    } else {
-                        estourouDeNovo = !safeRunAVL(structure + ".csv", structure, n, data, v.testSet, report, "FINE");
-                    }
+                    boolean estourouDeNovo =
+                            !safeRunAVL(structure + ".csv", structure, n, data, v.testSet, report, "FINE");
 
                     if (estourouDeNovo) {
                         log("[FINE " + structure + "] ESTOUROU DE NOVO em n=" + n + " — encerrando refinamento desta estrutura.");
@@ -319,41 +277,6 @@ public class MainBusca {
 
     // ===================== SAFE RUN =====================
 
-    static boolean safeRunABB(String file, String name, int n,
-                               List<Long> data, List<Long> tests,
-                               BufferedWriter report) throws IOException {
-        return safeRunABB(file, name, n, data, tests, report, "COARSE");
-    }
-
-    static boolean safeRunABB(String file, String name, int n,
-                               List<Long> data, List<Long> tests,
-                               BufferedWriter report, String phase) throws IOException {
-
-        try {
-            TArvore t = buildABB(data);
-            Result r = benchmarkABB(t, tests);
-            write(file, n, r);
-
-            if (phase.equals("COARSE")) lastSuccess.put(name, n);
-
-            return true;
-
-        } catch (Throwable e) {
-
-            if (phase.equals("COARSE")) {
-                failPoint.put(name, n);
-                activeABB.remove(name);
-            }
-
-            writeFail(file, n);
-
-            report.write("ABB," + phase + "," + n + "," + e.getClass().getSimpleName());
-            report.newLine();
-
-            return false;
-        }
-    }
-
     static boolean safeRunAVL(String file, String name, int n,
                                List<Long> data, List<Long> tests,
                                BufferedWriter report) throws IOException {
@@ -397,14 +320,6 @@ public class MainBusca {
         return t;
     }
 
-    static TArvore buildABB(List<Long> data) {
-        TArvore t = new TArvore();
-        for (long s : data) {
-            t.insere(s);
-        }
-        return t;
-    }
-
     // ===================== LOAD =====================
 
     // le a primeira coluna como numero - se carregar como String a ordenacao
@@ -426,80 +341,30 @@ public class MainBusca {
         return ids;
     }
 
-    // ===================== ESTRUTURAS =====================
+    // ===================== ESTRUTURA =====================
     //
-    // TArvore (ABB) e TArvoreAVL seguem a implementação por apontadores do
-    // prof. Alcides (NA03/NA04): nodos com esq/dir/pai, insere recursivo com
-    // parâmetro pai, pesquisa recursiva, e na AVL o rebalanceamento AVL(p)
-    // subindo pelos pais com balanco/balpreOrdem e rotacao_esquerda/direita.
-    // Adaptações do benchmark: chave long direto no nodo (sem TInfo/nome),
-    // contador de comparações e sem prints por inserção/rotação.
+    // TArvoreAVL: AVL clássica por apontadores esq/dir, sem apontador para
+    // o pai. A inserção é recursiva e devolve a nova raiz de cada subárvore
+    // ("T.esq = insere(T.esq, chave)"), o que já religa a árvore ao subir
+    // da recursão — dispensa o apontador de pai que a versão anterior usava
+    // para caminhar de volta até a raiz e refazer o balanceamento. Cada nó
+    // guarda sua própria altura; ao voltar de cada chamada recursiva ela é
+    // recalculada em O(1) a partir da altura, já atualizada, dos dois
+    // filhos — nunca por travessia da subárvore inteira (que era o defeito
+    // da versão anterior: balanco() percorria a subárvore inteira a cada
+    // inserção, tornando a construção O(n²)).
     //
-    // A inserção recursiva é proposital: numa entrada ordenada ou em ordem
-    // inversa, a ABB sem balanceamento degenera numa lista ligada com
-    // profundidade O(n), e a recursão consome uma frame de pilha por nível —
-    // para n grande o suficiente, isso estoura a pilha (StackOverflowError)
-    // de verdade. É esse estouro que safeRunABB/AVL captura e registra.
-
-    static class TArvore {
-
-        static class TNodo {
-            TNodo esq;
-            long chave;
-            TNodo dir;
-            TNodo pai;
-
-            TNodo(long chave, TNodo pai) {
-                this.chave = chave;
-                this.esq = null;
-                this.dir = null;
-                this.pai = pai;
-            }
-        }
-
-        public TNodo T;
-        long comparisons = 0;
-
-        public void insere(long chave) {
-            T = insere(T, chave, null);
-        }
-
-        public TNodo insere(TNodo T, long chave, TNodo pai) {
-            if (T == null) {
-                T = new TNodo(chave, pai);
-            } else {
-                pai = T;
-                comparisons++;
-                if (chave < T.chave)
-                    T.esq = insere(T.esq, chave, pai);
-                else if (chave > T.chave)
-                    T.dir = insere(T.dir, chave, pai);
-            }
-            return T;
-        }
-
-        public TNodo pesquisa(long chave) {
-            return pesquisa(T, chave);
-        }
-
-        public TNodo pesquisa(TNodo T, long chave) {
-            if (T == null) {
-                return T;
-            } else {
-                comparisons++;
-                if (chave == T.chave)
-                    return T;
-                else
-                    if (chave < T.chave)
-                        T = pesquisa(T.esq, chave);
-                    else
-                        T = pesquisa(T.dir, chave);
-            }
-            return T;
-        }
-    }
-
-    // ===================== AVL =====================
+    // Por ser uma AVL de verdade, a altura da árvore é sempre O(log n),
+    // qualquer que seja a ordem de inserção (aleatória, ordenada ou
+    // invertida): diferente de uma ABB sem balanceamento, ela nunca
+    // degenera numa lista ligada. Isso também garante que a profundidade de
+    // recursão de insere/pesquisa é O(log n), então não há mais risco de
+    // StackOverflowError por entrada ordenada — o try/catch em safeRunAVL
+    // continua como rede de segurança genérica (ex.: memória insuficiente
+    // para n muito grande), mas deixou de ser necessário por causa de
+    // desbalanceamento, e por isso o teto extra que a AVL tinha (o antigo
+    // AVL_MAX_N) foi removido: ela agora percorre a mesma faixa de n que as
+    // demais estruturas.
 
     static class TArvoreAVL {
 
@@ -507,139 +372,135 @@ public class MainBusca {
             TNodo esq;
             long chave;
             TNodo dir;
-            TNodo pai;
-            int bal = 0;
-            int hesq = 0;
-            int hdir = 0;
+            int altura; // altura do nó: folha = 1, filho inexistente (null) = 0
 
-            TNodo(long chave, TNodo pai) {
+            TNodo(long chave) {
                 this.chave = chave;
                 this.esq = null;
                 this.dir = null;
-                this.pai = pai;
+                this.altura = 1;
             }
         }
 
         public TNodo T;
-        private int h;
-        private TNodo p;
         long comparisons = 0;
 
+        // ---- altura e fator de balanceamento em O(1) ----
+        // Nunca por travessia: sempre lidos direto do campo 'altura' de
+        // cada nó, que insere() mantém correto em toda chamada.
+
+        private static int altura(TNodo t) {
+            return t == null ? 0 : t.altura;
+        }
+
+        private static void atualizaAltura(TNodo t) {
+            t.altura = 1 + Math.max(altura(t.esq), altura(t.dir));
+        }
+
+        private static int fatorBalanceamento(TNodo t) {
+            return t == null ? 0 : altura(t.esq) - altura(t.dir);
+        }
+
+        // ---- rotações ----
+        //
+        // Em cada rotação, a altura do nó que desce é recalculada ANTES da
+        // altura do nó que sobe, porque a altura de quem sobe depende da
+        // altura já correta de quem desceu.
+
+        private static TNodo rotacaoDireita(TNodo y) {
+            TNodo x = y.esq;
+            TNodo T2 = x.dir;
+
+            x.dir = y;
+            y.esq = T2;
+
+            atualizaAltura(y);
+            atualizaAltura(x);
+
+            return x; // nova raiz da subárvore
+        }
+
+        private static TNodo rotacaoEsquerda(TNodo x) {
+            TNodo y = x.dir;
+            TNodo T2 = y.esq;
+
+            y.esq = x;
+            x.dir = T2;
+
+            atualizaAltura(x);
+            atualizaAltura(y);
+
+            return y; // nova raiz da subárvore
+        }
+
+        // ---- inserção ----
+        //
+        // Recursiva no estilo clássico: cada chamada devolve a raiz
+        // (possivelmente nova) da subárvore em que foi chamada, e quem
+        // chamou religa o ponteiro ("t.esq = insere(t.esq, chave)"). Ao
+        // voltar de cada nível da recursão, a altura do nó é recalculada e
+        // o fator de balanceamento é conferido; se ultrapassar +-1, aplica-
+        // se a rotação simples (LL/RR) ou dupla (LR/RL) apropriada — a
+        // escolha é feita pelo sinal do fator de balanceamento do filho, o
+        // critério padrão de livro-texto (não depende de comparar a chave
+        // recém-inserida).
         public void insere(long chave) {
-            T = insere(T, chave, null);
-            AVL(p);
+            T = insere(T, chave);
         }
 
-        public TNodo insere(TNodo T, long chave, TNodo pai) {
-            if (T == null) {
-                T = new TNodo(chave, pai);
-                this.p = T;
+        private TNodo insere(TNodo t, long chave) {
+            if (t == null) {
+                return new TNodo(chave);
+            }
+
+            comparisons++;
+            if (chave < t.chave) {
+                t.esq = insere(t.esq, chave);
+            } else if (chave > t.chave) {
+                t.dir = insere(t.dir, chave);
             } else {
-                pai = T;
-                comparisons++;
-                if (chave < T.chave)
-                    T.esq = insere(T.esq, chave, pai);
-                else if (chave > T.chave)
-                    T.dir = insere(T.dir, chave, pai);
+                return t; // chave já existe: não reinsere, árvore não muda
             }
-            return T;
-        }
 
-        public void AVL(TNodo T) {
-            if (T != null) {
-                T.bal = balanco(T);
-                if (T.bal < 2) {
-                    AVL(T.pai);
-                } else {
+            atualizaAltura(t);
 
-                    if (T.hesq >= T.hdir)
-                        if (T.esq.hesq >= T.esq.hdir) {
-                            rotacao_direita(T);
-                        }
-                        else {
-                            rotacao_esquerda(T.esq);
-                            rotacao_direita(T);
-                        }
+            int fb = fatorBalanceamento(t);
 
-                    if (T.hdir >= T.hesq)
-                        if (T.dir.hdir >= T.dir.hesq) {
-                            rotacao_esquerda(T);
-                        }
-                        else {
-                            rotacao_direita(T.dir);
-                            rotacao_esquerda(T);
-                        }
-                }
+            if (fb > 1) {
+                if (fatorBalanceamento(t.esq) < 0)
+                    t.esq = rotacaoEsquerda(t.esq); // caso LR: reduz a LL
+                return rotacaoDireita(t);           // caso LL
             }
-        }
 
-        public int balanco(TNodo T) {
-            h = 0; balpreOrdem(T.esq, 0); T.hesq = h;
-            h = 0; balpreOrdem(T.dir, 0); T.hdir = h;
-            return Math.abs(T.hesq - T.hdir);
-        }
-
-        public void balpreOrdem(TNodo T, int v) {
-            if (T != null) {
-                v++;
-                balpreOrdem(T.esq, v);
-                balpreOrdem(T.dir, v);
-            } else
-                if (v > h) h = v;
-        }
-
-        public void rotacao_esquerda(TNodo T) {
-            TNodo apu = T.dir;
-            T.dir = apu.esq;
-            if (apu.esq != null) apu.esq.pai = T;
-            apu.pai = T.pai;
-            apu.esq = T; T.pai = apu;
-            T.bal = 0;
-            if (apu.pai == null)
-                this.T = apu;
-            else {
-                if (apu.chave < apu.pai.chave)
-                    apu.pai.esq = apu;
-                else
-                    apu.pai.dir = apu;
+            if (fb < -1) {
+                if (fatorBalanceamento(t.dir) > 0)
+                    t.dir = rotacaoDireita(t.dir);  // caso RL: reduz a RR
+                return rotacaoEsquerda(t);          // caso RR
             }
+
+            return t;
         }
 
-        public void rotacao_direita(TNodo T) {
-            TNodo apu = T.esq;
-            T.esq = apu.dir;
-            if (apu.dir != null) apu.dir.pai = T;
-            apu.pai = T.pai;
-            apu.dir = T; T.pai = apu;
-            T.bal = 0;
-            if (apu.pai == null)
-                this.T = apu;
-            else {
-                if (apu.chave < apu.pai.chave)
-                    apu.pai.esq = apu;
-                else
-                    apu.pai.dir = apu;
-            }
-        }
-
+        // ---- busca ----
+        //
+        // A altura O(log n) garantida pela AVL faz da busca uma descida de
+        // no máximo O(log n) comparações no pior caso.
         public TNodo pesquisa(long chave) {
             return pesquisa(T, chave);
         }
 
-        public TNodo pesquisa(TNodo T, long chave) {
-            if (T == null) {
-                return T;
-            } else {
-                comparisons++;
-                if (chave == T.chave)
-                    return T;
-                else
-                    if (chave < T.chave)
-                        T = pesquisa(T.esq, chave);
-                    else
-                        T = pesquisa(T.dir, chave);
+        private TNodo pesquisa(TNodo t, long chave) {
+            if (t == null) {
+                return null;
             }
-            return T;
+
+            comparisons++;
+            if (chave == t.chave)
+                return t;
+            else if (chave < t.chave)
+                return pesquisa(t.esq, chave);
+            else
+                return pesquisa(t.dir, chave);
         }
     }
 
@@ -652,127 +513,6 @@ public class MainBusca {
     }
 
     // ===================== BENCHMARK =====================
-
-    static Result benchmarkSequential(List<Long> data, List<Long> tests) {
-
-        // aquecimento (não medido)
-        int w = Math.min(WARMUP_SEARCHES, tests.size());
-        for (int i = 0; i < w; i++) {
-            long x = tests.get(i);
-            for (long v : data) {
-                if (v == x) break;
-            }
-        }
-
-        long comps = 0;
-        long total = 0;
-        int repeats = 0;
-
-        while (repeats == 0 || (total < MIN_MEASURE_NS && repeats < MAX_REPEATS)) {
-
-            long s = System.nanoTime();
-
-            for (long x : tests) {
-                int comp = 0;
-                for (long v : data) {
-                    comp++;
-                    if (v == x) break;
-                }
-                comps += comp;
-            }
-
-            total += System.nanoTime() - s;
-            repeats++;
-        }
-
-        long searches = (long) repeats * tests.size();
-        long timeRef = Math.round((double) total / searches * REFERENCE_SEARCHES);
-
-        return new Result(timeRef, comps / searches);
-    }
-
-    static Result benchmarkBinary(List<Long> data, List<Long> tests) {
-
-        // aquecimento (não medido)
-        int w = Math.min(WARMUP_SEARCHES, tests.size());
-        for (int i = 0; i < w; i++) {
-            long x = tests.get(i);
-            int l = 0, r = data.size() - 1;
-            while (l <= r) {
-                int m = (l + r) / 2;
-                int cmp = Long.compare(data.get(m), x);
-                if (cmp == 0) break;
-                else if (cmp < 0) l = m + 1;
-                else r = m - 1;
-            }
-        }
-
-        long comps = 0;
-        long total = 0;
-        int repeats = 0;
-
-        while (repeats == 0 || (total < MIN_MEASURE_NS && repeats < MAX_REPEATS)) {
-
-            long s = System.nanoTime();
-
-            for (long x : tests) {
-
-                int l = 0, r = data.size() - 1;
-                int comp = 0;
-
-                while (l <= r) {
-                    int m = (l + r) / 2;
-                    comp++;
-
-                    int cmp = Long.compare(data.get(m), x);
-
-                    if (cmp == 0) break;
-                    else if (cmp < 0) l = m + 1;
-                    else r = m - 1;
-                }
-
-                comps += comp;
-            }
-
-            total += System.nanoTime() - s;
-            repeats++;
-        }
-
-        long searches = (long) repeats * tests.size();
-        long timeRef = Math.round((double) total / searches * REFERENCE_SEARCHES);
-
-        return new Result(timeRef, comps / searches);
-    }
-
-    static Result benchmarkABB(TArvore t, List<Long> tests) {
-
-        // aquecimento (não medido)
-        int w = Math.min(WARMUP_SEARCHES, tests.size());
-        for (int i = 0; i < w; i++) {
-            t.pesquisa(tests.get(i));
-        }
-
-        t.comparisons = 0;
-        long total = 0;
-        int repeats = 0;
-
-        while (repeats == 0 || (total < MIN_MEASURE_NS && repeats < MAX_REPEATS)) {
-
-            long s = System.nanoTime();
-
-            for (long x : tests) {
-                t.pesquisa(x);
-            }
-
-            total += System.nanoTime() - s;
-            repeats++;
-        }
-
-        long searches = (long) repeats * tests.size();
-        long timeRef = Math.round((double) total / searches * REFERENCE_SEARCHES);
-
-        return new Result(timeRef, t.comparisons / searches);
-    }
 
     static Result benchmarkAVL(TArvoreAVL t, List<Long> tests) {
 

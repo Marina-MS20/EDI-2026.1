@@ -1,0 +1,48 @@
+================================================================================
+METODOLOGIA DE CÁLCULO - ÁREA ABAIXO DA CURVA
+================================================================================
+
+1. INTRODUÇÃO
+--------------------------------------------------------------------------------
+A 'Área abaixo da curva' representa uma integral aproximada do tempo
+de execução em função do tamanho da entrada (n). Essa métrica reflete
+o custo computacional cumulativo ao longo de toda a faixa testada.
+
+2. MÉTODO: REGRA DOS TRAPÉZIOS
+--------------------------------------------------------------------------------
+A regra dos trapézios aproxima a integral dividindo a área abaixo
+da curva em trapézios:
+
+Fórmula:
+  Área ≈ Σ(i=1 até n) [(x[i] - x[i-1]) * (y[i] + y[i-1]) / 2]
+
+Onde:
+  x[i] = tamanho da entrada (n)
+  y[i] = tempo de execução (em nanosegundos)
+
+3. INTERPRETAÇÃO
+--------------------------------------------------------------------------------
+Uma área menor indica que o algoritmo é mais eficiente no geral.
+A área leva em conta tanto:
+  • O tempo absoluto em cada ponto
+  • O intervalo (n_máximo - n_mínimo)
+
+Exemplo:
+  Estrutura A: cresce logaritmicamente, área = 500 ms
+  Estrutura B: cresce exponencialmente, área = 5000 ms
+  → Estrutura A é ~10x mais eficiente cumulativamente
+
+4. COMPARAÇÃO COM TEMPO MÉDIO
+--------------------------------------------------------------------------------
+  Tempo médio = (y[0] + y[1] + ... + y[n]) / n
+    → Simples aritmética, não considera distribuição de n
+
+  Área abaixo = ∫ y(x) dx
+    → Considera densidade de pontos em diferentes intervalos
+
+5. UNIDADES
+--------------------------------------------------------------------------------
+  Entrada: nanosegundos (time_ns)
+  Conversão: 1 ms = 1.000.000 ns
+  Saída: milissegundos (ms) para melhor legibilidade
+
