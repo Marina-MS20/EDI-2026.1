@@ -13,7 +13,7 @@ X_MIN_TEMPO = 10
 X_MAX_TEMPO = None
 Y_MIN_TEMPO = None
 Y_MAX_TEMPO = None
-ESCALA_LOG_TEMPO = True  # Mude para True se quiser log
+ESCALA_LOG_TEMPO = False  # Mude para True se quiser log
 
 # Para comparações - use escala log
 X_MIN_COMP = 10
