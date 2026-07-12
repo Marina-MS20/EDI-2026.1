@@ -30,6 +30,7 @@ public class AplicacaoFinal {
     private JLabel lblStatus;
 
     private JTextField txtBuscaId;
+    private JTextField txtBuscaData;
     private JTextArea areaBusca;
     private JTextField[] txtInserir;
     private JTextField txtRemoveId;
@@ -184,18 +185,47 @@ public class AplicacaoFinal {
         JPanel p = new JPanel(new BorderLayout(8, 8));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel topo = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        topo.add(new JLabel("ID do registro:"));
+        JPanel topo = new JPanel(new GridLayout(0, 1));
+
+        JPanel porId = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        porId.add(new JLabel("ID do registro:"));
         txtBuscaId = new JTextField(14);
-        topo.add(txtBuscaId);
+        porId.add(txtBuscaId);
         JButton btn = new JButton("Buscar");
-        topo.add(btn);
+        porId.add(btn);
+        topo.add(porId);
+
+        JPanel porCampos = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        porCampos.add(new JLabel("Por campos: data (aaaa-mm-dd)"));
+        txtBuscaData = new JTextField(9);
+        porCampos.add(txtBuscaData);
+        porCampos.add(new JLabel("campo"));
+        cmbCampo = new JComboBox<>(Registro.COLUNAS);
+        porCampos.add(cmbCampo);
+        porCampos.add(new JLabel("valor"));
+        txtValor = new JTextField(10);
+        porCampos.add(txtValor);
+        JButton btnCampos = new JButton("Pesquisar registros");
+        porCampos.add(btnCampos);
+        topo.add(porCampos);
+
         p.add(topo, BorderLayout.NORTH);
 
         areaBusca = new JTextArea();
         areaBusca.setEditable(false);
         areaBusca.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
         p.add(new JScrollPane(areaBusca), BorderLayout.CENTER);
+
+        btnCampos.addActionListener(e -> {
+            String data = txtBuscaData.getText().trim();
+            String valor = txtValor.getText().trim();
+            if (data.isEmpty() && valor.isEmpty()) {
+                areaBusca.setText("Informe a data e/ou um valor para o campo.");
+                return;
+            }
+            areaBusca.setText(analises.pesquisaPorCampos(data,
+                    (String) cmbCampo.getSelectedItem(), valor));
+        });
 
         Runnable buscar = () -> {
             Long id = lerLong(txtBuscaId.getText());
@@ -427,28 +457,6 @@ public class AplicacaoFinal {
         txtAte = new JTextField(6);
         campos.add(txtAte);
         topo.add(campos);
-
-        JPanel filtros = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        filtros.add(new JLabel("Pesquisa por campos (usa a data se preenchida): campo"));
-        cmbCampo = new JComboBox<>(Registro.COLUNAS);
-        filtros.add(cmbCampo);
-        filtros.add(new JLabel("valor"));
-        txtValor = new JTextField(10);
-        filtros.add(txtValor);
-        JButton b7 = new JButton("Pesquisar registros");
-        filtros.add(b7);
-        topo.add(filtros);
-
-        b7.addActionListener(e -> {
-            String data = txtData.getText().trim();
-            String valor = txtValor.getText().trim();
-            if (data.isEmpty() && valor.isEmpty()) {
-                avisa("Informe a data e/ou um valor para o campo.");
-                return;
-            }
-            registraLog(analises.pesquisaPorCampos(data,
-                    (String) cmbCampo.getSelectedItem(), valor));
-        });
 
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton b1 = new JButton("Maior emissão da data");
