@@ -103,13 +103,20 @@ def generate_summary_table():
         estrutura_nome = ESTRUTURAS.get(filename, filename)
         
         x = df['n'].values
-        y = df['time_ns'].values
+        y_tempo = df['time_ns'].values
         
         n_max = int(df['n'].max()) if 'n' in df.columns else 0
         comparacoes_media = df['comparisons'].mean() if 'comparisons' in df.columns else 0
         
-        area_abaixo_curva = calcular_area_abaixo_curva(x, y)
+        area_abaixo_curva = calcular_area_abaixo_curva(x, y_tempo)
         tempo_media = (df['time_ns'].mean() / 1_000_000) if 'time_ns' in df.columns else 0
+        
+        # Altura da árvore (apenas para ABB e AVL)
+        altura_media = "-"
+        altura_max = "-"
+        if 'height' in df.columns:
+            altura_media = f"{df['height'].mean():.2f}"
+            altura_max = int(df['height'].max())
         
         # Indicador de Stack Overflow
         stack_overflow = "SIM" if fail_n_values else "NÃO"
@@ -118,9 +125,11 @@ def generate_summary_table():
         summary_data.append({
             'Estrutura': estrutura_nome,
             'N máximo': n_max,
-            'Comp max': f"{comparacoes_media:.0f}",
-            't ms': f"{tempo_media:.6f}",
+            'Comp méd': f"{comparacoes_media:.0f}",
+            't ms méd': f"{tempo_media:.6f}",
             'Área t': f"{area_abaixo_curva:.6f}",
+            'Alt méd': altura_media,
+            'Alt máx': altura_max,
             'Overflow': stack_overflow,
             'Falha em N': primeiro_fail
         })
@@ -141,11 +150,11 @@ def generate_summary_table():
     print(f"\n[OK] Tabela salva em TSV: {path_tsv}\n")
     
     # Exibir tabela
-    print("=" * 160)
+    print("=" * 180)
     print("RESUMO - ANÁLISE DE ALGORITMOS DE BUSCA")
-    print("=" * 160)
+    print("=" * 180)
     print(df_summary.to_string(index=False))
-    print("=" * 160)
+    print("=" * 180)
     
     return df_summary, fail_info
 
@@ -182,16 +191,111 @@ def generate_fail_report(fail_info):
     print(f"[OK] Relatório de falhas: {path_report}")
 
 # ======================================================
+# GERAR RELATÓRIO DETALHADO (COM ALTURA)
+# ======================================================
+
+def generate_detailed_report(df_summary):
+    """Gera relatório detalhado com informações de altura para ABB e AVL"""
+    
+    path_report = Path(REPORTS_DIR) / "relatorio_detalhado.txt"
+    
+    with open(path_report, "w", encoding="utf-8") as f:
+        f.write("=" * 100 + "\n")
+        f.write("RELATÓRIO DETALHADO - ANÁLISE DE ALGORITMOS DE BUSCA\n")
+        f.write("=" * 100 + "\n\n")
+        
+        timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        f.write(f"Data/Hora: {timestamp}\n")
+        f.write(f"Diretório entrada: {INPUT_DIR}\n")
+        f.write(f"Diretório saída: {REPORTS_DIR}\n\n")
+        
+        # Tabela resumida em texto
+        f.write("-" * 100 + "\n")
+        f.write("TABELA RESUMIDA\n")
+        f.write("-" * 100 + "\n\n")
+        f.write(df_summary.to_string(index=False))
+        f.write("\n\n")
+        
+        # Análise por estrutura
+        f.write("=" * 100 + "\n")
+        f.write("ANÁLISE DETALHADA POR ESTRUTURA\n")
+        f.write("=" * 100 + "\n\n")
+        
+        for filename in FILES:
+            df, fail_n_values = load_csv(filename)
+            
+            if df is None or len(df) < 1:
+                continue
+            
+            estrutura_nome = ESTRUTURAS.get(filename, filename)
+            
+            f.write(f"\n{'-' * 100}\n")
+            f.write(f"ESTRUTURA: {estrutura_nome.upper()}\n")
+            f.write(f"{'-' * 100}\n\n")
+            
+            # Estatísticas gerais
+            n_max = int(df['n'].max())
+            n_min = int(df['n'].min())
+            comp_min = df['comparisons'].min()
+            comp_max = df['comparisons'].max()
+            comp_media = df['comparisons'].mean()
+            comp_std = df['comparisons'].std()
+            
+            tempo_min = df['time_ns'].min() / 1_000_000
+            tempo_max = df['time_ns'].max() / 1_000_000
+            tempo_media = df['time_ns'].mean() / 1_000_000
+            tempo_std = df['time_ns'].std() / 1_000_000
+            
+            f.write(f"Intervalo de N: {n_min} a {n_max} ({len(df)} pontos)\n\n")
+            
+            f.write("COMPARAÇÕES:\n")
+            f.write(f"  Mínimo: {comp_min:.0f}\n")
+            f.write(f"  Máximo: {comp_max:.0f}\n")
+            f.write(f"  Média: {comp_media:.2f}\n")
+            f.write(f"  Desvio padrão: {comp_std:.2f}\n\n")
+            
+            f.write("TEMPO (ms):\n")
+            f.write(f"  Mínimo: {tempo_min:.8f}\n")
+            f.write(f"  Máximo: {tempo_max:.8f}\n")
+            f.write(f"  Média: {tempo_media:.8f}\n")
+            f.write(f"  Desvio padrão: {tempo_std:.8f}\n\n")
+            
+            # Altura (apenas para ABB e AVL)
+            if 'height' in df.columns:
+                altura_min = df['height'].min()
+                altura_max = df['height'].max()
+                altura_media = df['height'].mean()
+                altura_std = df['height'].std()
+                
+                f.write("ALTURA DA ÁRVORE:\n")
+                f.write(f"  Mínimo: {altura_min:.0f}\n")
+                f.write(f"  Máximo: {altura_max:.0f}\n")
+                f.write(f"  Média: {altura_media:.2f}\n")
+                f.write(f"  Desvio padrão: {altura_std:.2f}\n\n")
+            
+            # Informações sobre falhas
+            if fail_n_values:
+                f.write(f"Stack Overflow: SIM\n")
+                f.write(f"  Primeiro ponto de falha: {fail_n_values[0]}\n")
+                f.write(f"  Total de falhas: {len(fail_n_values)}\n")
+            else:
+                f.write(f"Stack Overflow: NÃO\n")
+            
+            f.write("\n")
+    
+    print(f"[OK] Relatório detalhado: {path_report}")
+
+# ======================================================
 # MAIN
 # ======================================================
 
 def main():
-    print("=" * 160)
+    print("=" * 180)
     print("GERADOR DE TABELA RESUMIDA - ALGORITMOS DE BUSCA")
-    print("=" * 160)
+    print("=" * 180)
     print(f"Diretório entrada: {INPUT_DIR}")
     print(f"Diretório saída: {REPORTS_DIR}")
-    print("=" * 160)
+    print("=" * 180)
     print()
     
     # Gerar tabela resumida
@@ -201,9 +305,13 @@ def main():
     print()
     generate_fail_report(fail_info)
     
-    print("\n" + "=" * 160)
+    # Gerar relatório detalhado
+    print()
+    generate_detailed_report(df_summary)
+    
+    print("\n" + "=" * 180)
     print("PROCESSAMENTO FINALIZADO")
-    print("=" * 160)
+    print("=" * 180)
 
 if __name__ == "__main__":
     main()
