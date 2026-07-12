@@ -7,7 +7,7 @@ venceu nos benchmarks da etapa de experimentação.
 
 ```
 compilar.bat        (gera o AplicacaoEDI.jar)
-executar.bat        (roda com o padrão de 100.000 registros)
+executar.bat        (roda com a base inteira, ~7 milhões de registros)
 ```
 
 ou na mão:
@@ -15,12 +15,13 @@ ou na mão:
 ```
 javac -encoding UTF-8 *.java
 jar cfe AplicacaoEDI.jar AplicacaoFinal *.class
-java -jar AplicacaoEDI.jar [limite] [caminho_do_csv]
+java -Xmx4g -jar AplicacaoEDI.jar [limite] [caminho_do_csv]
 ```
 
 O csv é procurado na pasta atual e depois na pasta acima (raiz do projeto).
-A carga padrão é de 100.000 registros e demora ~30s por causa da construção
-da AVL (tem barra de progresso).
+Por padrão a carga lê o arquivo inteiro (~7,1 milhões de registros, uns 10s,
+~1,5GB de memória - por isso o -Xmx4g). Dá pra limitar passando um número
+como primeiro argumento (ex.: 100000 pra uma demo rápida).
 
 ## Operações
 
@@ -34,7 +35,8 @@ da AVL (tem barra de progresso).
   data, data de maior emissão de um comprimento de onda, primeira/última
   data do banco (descida pelas bordas da árvore, já que os IDs do csv
   crescem em ordem cronológica), menor/maior comprimento de onda, média de
-  emissão num intervalo de comprimento de onda e gráfico do espectro da data
+  emissão num intervalo de comprimento de onda, pesquisa por data e/ou por
+  qualquer campo do registro (listando os que baterem) e gráfico do espectro da data
   (comprimento de onda em nm × irradiância em W/m²/nm, desenhado em Swing).
   Cada consulta gera um registro de execução com a operação, os parâmetros,
   o resultado, as comparações, o tempo, o nível onde o resultado estava e a
@@ -49,8 +51,8 @@ da AVL (tem barra de progresso).
   n≈24,7 mil). A busca binária em vetor foi a mais rápida na busca, mas
   inserir/remover em vetor ordenado custa O(n) - como a aplicação precisa
   das três operações, a AVL dá O(log n) em todas.
-- **Busca: pesquisa da AVL** - pra n=100.000 são ~16 comparações, contra
-  ~50.000 da busca sequencial.
+- **Busca: pesquisa da AVL** - pra n=7,1 milhões são ~23 comparações, contra
+  ~3,5 milhões da busca sequencial.
 - **Remoção: Remove/getMax da ABB (NA03)** - substituição pelo maior da
   subárvore esquerda, o modo usado na disciplina. Como o NA04 não tem
   remoção pra AVL, depois da retirada o rebalanceamento sobe do pai do nó
@@ -69,12 +71,22 @@ da AVL (tem barra de progresso).
 ## Trade-offs
 
 - O balanco() do NA04 recalcula as alturas percorrendo as subárvores a cada
-  inserção, então a construção da AVL é O(n²) (~30s pra 100 mil registros).
-  Esse custo é pago uma vez só, na carga; as operações depois são rápidas.
+  inserção, então montar a árvore inserindo um a um é O(n²) - foi ~30s pra
+  100 mil registros no benchmark, seriam dias pros 7 milhões. Por isso a
+  carga usa o CriaABP do exercício 10 (ENADE 2011): como o csv já vem
+  ordenado por ID, a árvore completa é montada em tempo linear (0,2s) e já
+  nasce balanceada (altura 23 pra 7,1 milhões, o mínimo é ~22,8). Se o csv
+  vier fora de ordem, o MergeSort do benchmark ordena antes. As inserções,
+  remoções e buscas depois da carga continuam 100% com o código do
+  professor.
 - O MergeSort usa O(n) de memória auxiliar (workSpace), em troca do
   O(n log n) garantido em qualquer distribuição.
-- 100 mil registros é o mesmo teto usado no benchmark da AVL (AVL_MAX_N),
-  o limite prático da construção O(n²).
+- A tabela da exibição ordenada mostra no máximo 200 mil linhas (o
+  MergeSort ordena tudo, só a exibição é limitada - 7 milhões de linhas
+  numa JTable estouram a memória sem necessidade).
+- Strings repetidas do csv (data, comprimentos de onda, modo, versão,
+  qualidade) são guardadas uma vez só, senão a base completa não caberia
+  confortavelmente na memória.
 
 ## Arquivos
 

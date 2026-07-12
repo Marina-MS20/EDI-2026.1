@@ -124,7 +124,7 @@ public class Analises {
         long inicio = System.nanoTime();
 
         if (arvore.T == null)
-            return registro("menor e maior data do banco", "nenhum", "árvore vazia.", "sem percurso", 0);
+            return registro("menor e maior data do banco", "nenhum", "árvore vazia.", null, 0);
 
         TArvoreAVL.TNodo min = arvore.T;
         int nivelMin = 1;
@@ -221,7 +221,60 @@ public class Analises {
                 resultado, null, tempo);
     }
 
-    // 6) pontos (comprimento de onda, irradiância) de uma data pro gráfico.
+    // 6) pesquisa genérica: data e/ou um campo qualquer do registro,
+    // listando os que baterem. o limite evita estourar o log quando o
+    // filtro casa com milhares de registros.
+    private static final int MAX_LISTADOS = 200;
+
+    public String pesquisaPorCampos(String data, String campo, String valor) {
+        zera();
+        long inicio = System.nanoTime();
+
+        int idx = 0;
+        for (int i = 0; i < Registro.COLUNAS.length; i++)
+            if (Registro.COLUNAS[i].equals(campo)) idx = i;
+        final int campoIdx = idx;
+
+        final boolean filtraData = data != null && !data.isEmpty();
+        final boolean filtraCampo = valor != null && !valor.isEmpty();
+        final double valorNum = filtraCampo ? num(valor) : Double.NaN;
+
+        StringBuilder lista = new StringBuilder();
+
+        percorre(arvore.T, 1, (t, nivel) -> {
+            visitados++;
+            comps++;
+            if (filtraData && !data.equals(t.item.date)) return;
+            if (filtraCampo) {
+                String v = String.valueOf(t.item.toRow()[campoIdx]);
+                double vn = num(v);
+                boolean igual = (!Double.isNaN(vn) && !Double.isNaN(valorNum))
+                        ? vn == valorNum
+                        : v.equalsIgnoreCase(valor);
+                if (!igual) return;
+            }
+            achados++;
+            if (achados <= MAX_LISTADOS)
+                lista.append(String.format("  nível %d: ID=%d, date=%s, λ=%s nm, irradiância=%s%n",
+                        nivel, t.item.id, t.item.date, t.item.minWavelength, t.item.irradiance));
+        });
+
+        long tempo = System.nanoTime() - inicio;
+
+        if (achados > MAX_LISTADOS)
+            lista.append(String.format("  (+%,d registros não exibidos)%n", achados - MAX_LISTADOS));
+
+        String params = (filtraData ? "data = " + data : "")
+                + (filtraData && filtraCampo ? ", " : "")
+                + (filtraCampo ? campo + " = " + valor : "");
+
+        String resultado = String.format("%,d registros encontrados.", achados);
+
+        return registro("pesquisa por campos", params, resultado,
+                achados == 0 ? null : lista.toString().stripTrailing(), tempo);
+    }
+
+    // 7) pontos (comprimento de onda, irradiância) de uma data pro gráfico.
     // o em-ordem por id já devolve os comprimentos de onda em ordem crescente
     // dentro da mesma data, do jeito que o csv é organizado.
     public static class Espectro {

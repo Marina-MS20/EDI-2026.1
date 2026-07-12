@@ -37,12 +37,26 @@ public class Registro {
         if (v.length == 0 || v[0].isEmpty()) return null;
         long id = Long.parseLong(v[0]);
         return new Registro(id,
-                col(v, 1), col(v, 2), col(v, 3), col(v, 4),
-                col(v, 5), col(v, 6), col(v, 7), col(v, 8));
+                cache(col(v, 1)), cache(col(v, 2)), cache(col(v, 3)), cache(col(v, 4)),
+                cache(col(v, 5)), col(v, 6), col(v, 7), cache(col(v, 8)));
     }
 
     private static String col(String[] v, int i) {
         return i < v.length ? v[i] : "";
+    }
+
+    // data, comprimentos de onda, modo, versão e qualidade se repetem milhões
+    // de vezes no csv - guardar uma única String de cada economiza gigas de
+    // memória na carga completa (irradiância e incerteza são quase únicas)
+    private static final java.util.HashMap<String, String> CACHE = new java.util.HashMap<>();
+
+    private static String cache(String s) {
+        String c = CACHE.get(s);
+        if (c == null) {
+            CACHE.put(s, s);
+            c = s;
+        }
+        return c;
     }
 
     public Object[] toRow() {

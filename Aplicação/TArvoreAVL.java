@@ -137,6 +137,24 @@ public class TArvoreAVL {
         }
     }
 
+    // monta a árvore inteira a partir de um vetor já ordenado por chave,
+    // em tempo linear, como o CriaABP do exercício 10 (ENADE 2011, questão 4):
+    // o elemento do meio vira a raiz e as metades viram as subárvores.
+    // a árvore sai completa, então já nasce balanceada. construir os 7 milhões
+    // com o insere um a um seria O(n²) - inviável.
+    public void constroiDeVetorOrdenado(Registro[] v) {
+        T = criaABP(v, 0, v.length - 1, null);
+    }
+
+    private TNodo criaABP(Registro[] v, int i, int j, TNodo pai) {
+        if (i > j) return null;
+        int pos = (i + j) / 2;
+        TNodo t = new TNodo(v[pos].id, v[pos], pai);
+        t.esq = criaABP(v, i, pos - 1, t);
+        t.dir = criaABP(v, pos + 1, j, t);
+        return t;
+    }
+
     // ===================== PESQUISA (NA04) =====================
 
     public TNodo pesquisa(long chave) {

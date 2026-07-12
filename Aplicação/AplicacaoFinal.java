@@ -10,10 +10,15 @@ import java.util.List;
 // aplicação final - EDI 2026.1
 // GUI sobre o solarradiation.csv: os registros ficam na AVL do professor
 // (busca, inserção e remoção) e a exibição ordenada usa o mergesort do
-// benchmark. uso: java -jar AplicacaoEDI.jar [limite] [csv]
+// benchmark. por padrão carrega o csv inteiro (~7 milhões de registros).
+// uso: java -jar AplicacaoEDI.jar [limite] [csv]
 public class AplicacaoFinal {
 
-    private static final int LIMITE_PADRAO = 100_000;
+    private static final int LIMITE_PADRAO = Integer.MAX_VALUE;
+
+    // teto de linhas jogadas na JTable - acima disso a tabela consome
+    // memória demais e não dá pra ler mesmo
+    private static final int MAX_LINHAS_TABELA = 200_000;
 
     private final TArvoreAVL arvore = new TArvoreAVL();
     private final Analises analises = new Analises(arvore);
@@ -22,8 +27,6 @@ public class AplicacaoFinal {
     private JFrame frame;
     private CardLayout cards;
     private JPanel raiz;
-    private JProgressBar barra;
-    private JLabel lblCarga;
     private JLabel lblStatus;
 
     private JTextField txtBuscaId;
@@ -37,6 +40,8 @@ public class AplicacaoFinal {
     private JTextField txtLambda;
     private JTextField txtDe;
     private JTextField txtAte;
+    private JComboBox<String> cmbCampo;
+    private JTextField txtValor;
     private JTextArea areaAnalises;
 
     public static void main(String[] args) {
@@ -81,29 +86,9 @@ public class AplicacaoFinal {
 
     private JPanel montarTelaCarga() {
         JPanel p = new JPanel(new GridBagLayout());
-        JPanel centro = new JPanel();
-        centro.setLayout(new BoxLayout(centro, BoxLayout.Y_AXIS));
-
-        JLabel titulo = new JLabel("Carregando a base e construindo a árvore AVL...");
-        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 16f));
-        titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        lblCarga = new JLabel(" ");
-        lblCarga.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        barra = new JProgressBar(0, 100);
-        barra.setStringPainted(true);
-        barra.setPreferredSize(new Dimension(420, 28));
-        barra.setMaximumSize(new Dimension(420, 28));
-        barra.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        centro.add(titulo);
-        centro.add(Box.createVerticalStrut(12));
-        centro.add(barra);
-        centro.add(Box.createVerticalStrut(8));
-        centro.add(lblCarga);
-
-        p.add(centro);
+        JLabel lbl = new JLabel("Aguarde...");
+        lbl.setFont(lbl.getFont().deriveFont(Font.BOLD, 16f));
+        p.add(lbl);
         return p;
     }
 
@@ -126,41 +111,48 @@ public class AplicacaoFinal {
         return p;
     }
 
-    // carrega o csv numa thread separada pra não travar a janela,
-    // atualizando a barra de progresso
+    // carrega o csv numa thread separada pra não travar a janela.
+    // montar a árvore inserindo um a um seria O(n²) por causa do balanco()
+    // do professor (inviável pra 7 milhões), então: lê tudo pra um vetor,
+    // garante a ordem por ID (o csv já vem ordenado; se não vier, o
+    // mergesort do benchmark resolve) e monta a árvore em tempo linear com
+    // o CriaABP do exercício 10.
     private void carregarBase(String csv, int limite) {
-        SwingWorker<Long, Integer> worker = new SwingWorker<>() {
+        SwingWorker<Long, Void> worker = new SwingWorker<>() {
 
             long tempoNs;
 
             @Override
             protected Long doInBackground() throws Exception {
                 long inicio = System.nanoTime();
-                long lidos = 0;
+
+                List<Registro> lista = new ArrayList<>();
+                boolean ordenado = true;
+                long ultimoId = Long.MIN_VALUE;
 
                 try (BufferedReader br = new BufferedReader(new FileReader(csv))) {
                     br.readLine(); // pula cabeçalho
 
                     String line;
-                    while (lidos < limite && (line = br.readLine()) != null) {
+                    while (lista.size() < limite && (line = br.readLine()) != null) {
                         Registro r = Registro.fromCsv(line);
                         if (r == null) continue;
-                        arvore.insere(r.id, r);
-                        lidos++;
-                        if (lidos % 500 == 0) publish((int) (lidos * 100 / limite));
+                        if (r.id < ultimoId) ordenado = false;
+                        ultimoId = r.id;
+                        lista.add(r);
                     }
                 }
 
-                tempoNs = System.nanoTime() - inicio;
-                return lidos;
-            }
+                Registro[] v = lista.toArray(new Registro[0]);
+                lista = null;
 
-            @Override
-            protected void process(List<Integer> chunks) {
-                int pct = chunks.get(chunks.size() - 1);
-                barra.setValue(pct);
-                lblCarga.setText(String.format("%,d de %,d registros inseridos na AVL",
-                        (long) pct * limite / 100, (long) limite));
+                if (!ordenado)
+                    new Ordenacao(v, new Ordenacao.Counters()).mergeSort();
+
+                arvore.constroiDeVetorOrdenado(v);
+
+                tempoNs = System.nanoTime() - inicio;
+                return (long) v.length;
             }
 
             @Override
@@ -374,10 +366,11 @@ public class AplicacaoFinal {
             new Ordenacao(arr, c).mergeSort();
             long tempo = System.nanoTime() - inicio;
 
-            preencherTabela(arr);
+            int exibidos = preencherTabela(arr);
             lblOrdenacao.setText(String.format(
-                    "MergeSort por ID - %,d registros ordenados em %s   |   comparações: %,d   |   cópias: %,d",
-                    arr.length, fmtNs(tempo), c.comparisons, c.copies));
+                    "MergeSort por ID - %,d registros ordenados em %s   |   comparações: %,d   |   cópias: %,d%s",
+                    arr.length, fmtNs(tempo), c.comparisons, c.copies,
+                    exibidos < arr.length ? String.format("   |   exibindo os primeiros %,d", exibidos) : ""));
         });
 
         // em-ordem já sai ordenado, sem precisar ordenar
@@ -387,18 +380,20 @@ public class AplicacaoFinal {
             arvore.emOrdem(lista);
             long tempo = System.nanoTime() - inicio;
 
-            preencherTabela(lista.toArray(new Registro[0]));
+            int exibidos = preencherTabela(lista.toArray(new Registro[0]));
             lblOrdenacao.setText(String.format(
-                    "Caminhamento em-ordem - %,d registros visitados de forma ordenada em %s",
-                    lista.size(), fmtNs(tempo)));
+                    "Caminhamento em-ordem - %,d registros visitados de forma ordenada em %s%s",
+                    lista.size(), fmtNs(tempo),
+                    exibidos < lista.size() ? String.format("   |   exibindo os primeiros %,d", exibidos) : ""));
         });
 
         return p;
     }
 
-    private void preencherTabela(Registro[] dados) {
-        Object[][] linhas = new Object[dados.length][];
-        for (int i = 0; i < dados.length; i++)
+    private int preencherTabela(Registro[] dados) {
+        int n = Math.min(dados.length, MAX_LINHAS_TABELA);
+        Object[][] linhas = new Object[n][];
+        for (int i = 0; i < n; i++)
             linhas[i] = dados[i].toRow();
 
         tabela.setModel(new DefaultTableModel(linhas, Registro.COLUNAS) {
@@ -407,6 +402,7 @@ public class AplicacaoFinal {
         });
         for (int i = 0; i < Registro.COLUNAS.length; i++)
             tabela.getColumnModel().getColumn(i).setPreferredWidth(i == 0 ? 90 : 130);
+        return n;
     }
 
     // ===================== ABA ANÁLISES =====================
@@ -431,6 +427,28 @@ public class AplicacaoFinal {
         txtAte = new JTextField(6);
         campos.add(txtAte);
         topo.add(campos);
+
+        JPanel filtros = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        filtros.add(new JLabel("Pesquisa por campos (usa a data se preenchida): campo"));
+        cmbCampo = new JComboBox<>(Registro.COLUNAS);
+        filtros.add(cmbCampo);
+        filtros.add(new JLabel("valor"));
+        txtValor = new JTextField(10);
+        filtros.add(txtValor);
+        JButton b7 = new JButton("Pesquisar registros");
+        filtros.add(b7);
+        topo.add(filtros);
+
+        b7.addActionListener(e -> {
+            String data = txtData.getText().trim();
+            String valor = txtValor.getText().trim();
+            if (data.isEmpty() && valor.isEmpty()) {
+                avisa("Informe a data e/ou um valor para o campo.");
+                return;
+            }
+            registraLog(analises.pesquisaPorCampos(data,
+                    (String) cmbCampo.getSelectedItem(), valor));
+        });
 
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton b1 = new JButton("Maior emissão da data");
